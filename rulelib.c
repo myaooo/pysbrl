@@ -108,20 +108,10 @@ load_data(const char *data_file, const char *label_file,
 }
 
 
-/*
- * Preprocessing step.
- * INPUTS: Using the python from the BRL_code.py: Call get_freqitemsets
- * to generate data files of the form:
- * 	Rule<TAB><bit vector>\n
- *
- * OUTPUTS: an array of rule_t's
- */
-
 int
-rules_init(const char *infile, int *nrules,
+rules_init_from_stream(FILE *fi, int *nrules,
     int *nsamples, rule_t **rules_ret, int add_default_rule)
 {
-	FILE *fi;
 	char *cp, *features, *line, *rulestr;
 	int rule_cnt, sample_cnt, rsize;
 	int i, ones, ret;
@@ -130,9 +120,6 @@ rules_init(const char *infile, int *nrules,
 	ssize_t len;
 
 	sample_cnt = rsize = 0;
-
-	if ((fi = fopen(infile, "r")) == NULL)
-        return (errno);
 
 	/*
 	 * Leave a space for the 0th (default) rule, which we'll add at
@@ -182,7 +169,6 @@ rules_init(const char *infile, int *nrules,
 				rules[rule_cnt].cardinality++;
 		rule_cnt++;
 	}
-	fclose(fi);
 
 	/* Now create the 0'th (default) rule. */
 	if (add_default_rule) {
@@ -214,9 +200,32 @@ err:
 		}	
 		free(rules);
 	}
-	(void)fclose(fi);
+	// (void)fclose(fi);
 	return (ret);
 }
+
+/*
+ * Preprocessing step.
+ * INPUTS: Using the python from the BRL_code.py: Call get_freqitemsets
+ * to generate data files of the form:
+ * 	Rule<TAB><bit vector>\n
+ *
+ * OUTPUTS: an array of rule_t's
+ */
+
+int rules_init(const char *infile, int *nrules,
+    int *nsamples, rule_t **rules_ret, int add_default_rule) 
+{	
+	FILE *fi;
+	
+	if ((fi = fopen(infile, "r")) == NULL)
+        return (errno);
+	int ret = rules_init_from_stream(fi, nrules, nsamples, rules_ret, add_default_rule);
+	(void) fclose(fi);
+	return ret;
+}
+
+
 
 void
 rules_free(rule_t *rules, const int nrules, int add_default) {

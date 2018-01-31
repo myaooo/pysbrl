@@ -17,7 +17,7 @@ import_array();
 
 %typemap(in,numinputs=0)
     (int* N_STRINGS, char*** STRINGS)
-    (int tmp_n, char** tmp_strings)
+    (int tmp_n=1, char** tmp_strings=NULL)
 {
     $2 = &tmp_strings;
     $1 = &tmp_n;
@@ -35,13 +35,20 @@ import_array();
     $result = SWIG_Python_AppendOutput($result, o);
 }
 
-%typemap(default) int VERBOSE {
-  $1 = 0;
+%typemap(out) int {
+    if ($1 == 2) {
+        PyErr_SetString(PyExc_LookupError, "No such file or directory");
+        SWIG_fail;
+    }
 }
 
+/* %typemap(default) int VERBOSE {
+  $1 = 0;
+} */
+
 %apply (const char * STRING) {const char * data_file, const char * label_file};
-%apply (int DIM1, int* IN_ARRAY1) {(int n_alpha, int* alphas)};
-%apply (int VERBOSE) {(int verbose)};
+%apply (int* IN_ARRAY1, int DIM1) {(int* alphas, int n_alpha)};
+/* %apply (int VERBOSE) {(int verbose)}; */
 
 %apply (int* DIM1, int** ARGOUTVIEWM_ARRAY1)
 {(int* ret_n_rules, int** ret_rule_ids)};
@@ -52,15 +59,15 @@ import_array();
 %apply (int* N_STRINGS, char*** STRINGS)
 {(int* ret_n_all_rules, char*** ret_all_rule_features)};
 
-extern void train_sbrl(const char *data_file, const char *label_file,
-    double lambda, double eta, int max_iters, int nchains, int n_alpha, int* alphas,
-    int verbose,
-    int* ret_n_rules, int** ret_rule_ids, 
-    int* ret_n_probs, int* ret_n_classes, double** ret_probs,
-    int* ret_n_all_rules, char*** ret_all_rule_features);
+int train_sbrl(const char *data_file, const char *label_file,
+    double lambda, double eta, int max_iters, int nchain, int * alphas, int n_alpha,
+    int *ret_n_rules, int ** ret_rule_ids, 
+    int *ret_n_probs, int *ret_n_classes, double ** ret_probs,
+    int *ret_n_all_rules, char *** ret_all_rule_features);
 
 /*
 extern pred_model_t *train(data_t *, int, int, params_t *);
 extern gsl_matrix *predict(pred_model_t *, rule_t *labels, params_t *);
 extern int load_data(const char *, const char *, int *, int *, int *, rule_t **, rule_t **);
 */
+

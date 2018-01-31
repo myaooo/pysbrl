@@ -4,9 +4,11 @@
 #include "rule.h"
 #include <gsl/gsl_matrix.h>
 
-void train_sbrl(const char *data_file, const char *label_file,
-    double lambda, double eta, int max_iters, int nchain, int n_alpha, int * alphas,
-    int verbose,
+int verbose = 0;
+
+int train_sbrl(const char *data_file, const char *label_file,
+    double lambda, double eta, int max_iters, int nchain, int * alphas, int n_alpha,
+    // int verbose,
     int *ret_n_rules, int ** ret_rule_ids, 
     int *ret_n_probs, int *ret_n_classes, double ** ret_probs,
     int *ret_n_all_rules, char *** ret_all_rule_features) 
@@ -20,7 +22,8 @@ void train_sbrl(const char *data_file, const char *label_file,
     int ret = load_data(data_file, label_file, 
         &n_samples, &n_rules, &n_classes, &rules, &labels);
     if (ret != 0) {
-        fprintf(stderr, "Error: Failed to load data files\n");
+        fprintf(stderr, "Error %d: Failed to load data files\n", ret);
+        return ret;
     }
     if (verbose > 0)
         fprintf(stdout, "Info: Data files loaded.\n");
@@ -89,5 +92,5 @@ void train_sbrl(const char *data_file, const char *label_file,
         free(params.alpha);
     if (verbose > 1)
         fprintf(stdout, "Returning\n");
-
+    return 0;
 }

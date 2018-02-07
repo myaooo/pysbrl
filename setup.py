@@ -18,12 +18,13 @@ libraries=['gsl', 'gslcblas', 'gmp']
 if sysconfig.get_config_var("LIBM") == "-lm":
     libraries.append("m")
 
-
+includes = ['/usr/local/include']
 
 pysbrl_module = Extension('_pysbrl',
                            sources=['pysbrl.i', 'pysbrl.c', 'train.c', 'rulelib.c'],
-                        #    include_dirs= includes,
+                           include_dirs= includes,
                            libraries=libraries,
+                           library_dirs=['/usr/local/lib'],
                            swig_opts=['-keyword'],
                            extra_link_args=["-static"],
                            )

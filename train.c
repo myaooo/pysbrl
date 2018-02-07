@@ -233,7 +233,12 @@ compute_log_gammas(int nsamples, params_t *params)
 int
 compute_pmf(int nrules, params_t *params)
 {
-    int i;
+    int i, pmf_size = nrules;
+    if (((int) params->lambda) > nrules) {
+        fprintf(stderr, "Error: lambda is %.1f, larger than nrules: %d. Setting lambda to nrules to avoid numerical issues\n", params->lambda, nrules);
+        params->lambda = (double) nrules;
+        pmf_size = nrules+1;
+    }
     if ((log_lambda_pmf = malloc(nrules * sizeof(double))) == NULL)
         return (errno);
     for (i = 0; i < nrules; i++) {
@@ -657,12 +662,12 @@ compute_log_posterior(ruleset_t *rs, rule_t *rules, int nrules, rule_t *labels,
     // Don't compute the last (default) rule.
     for (i = 0; i < rs->n_rules - 1; i++) {
         li = rules[rs->rules[i].rule_id].cardinality;
-        log_prior += log_eta_pmf[li] - log(norm_constant) - log(local_cards[li]);
-
+        log_prior += log_eta_pmf[li] - log(norm_constant) - log(local_cards[li]+1e-4);
+        assert(local_cards[li] > 0);
         // added for prefix_bound
         if (i < length4bound) {
             prefix_prior += log_eta_pmf[li] - 
-                log(norm_constant) - log(local_cards[li]);
+                log(norm_constant) - log(local_cards[li]+1e-4);
         }
 
         local_cards[li]--;
@@ -697,8 +702,6 @@ compute_log_posterior(ruleset_t *rs, rule_t *rules, int nrules, rule_t *labels,
         _log_likelihood -= log_gammas[sum(params->n_classes, ns) + alpha_sum];
         log_likelihood += _log_likelihood;
         // Added for prefix_bound.
-        // left0 -= n0;
-        // left1 -= n1;
         if (j < length4bound) {
             prefix_log_likelihood += _log_likelihood;
             if (j == (length4bound - 1)) {
@@ -708,45 +711,21 @@ compute_log_posterior(ruleset_t *rs, rule_t *rules, int nrules, rule_t *labels,
                         log_gammas[supports[i] + alpha[i]]
                         - log_gammas[supports[i] + alpha_sum];
                 }
-                // prefix_log_likelihood += log_gammas[a1] + 
-                //     log_gammas[left0 + a0] - 
-                //     log_gammas[left0 + a01] + 
-                //     log_gammas[a0] + 
-                //     log_gammas[left1 + a1] - 
-                //     log_gammas[left1 + a01];
             }
         }
     }
-    // rule_vinit(rs->n_samples, &v0);
-    // for (j = 0; j < rs->n_rules; j++) {
-    // 	int n0, n1;	 // Count of 0's; count of 1's
 
-    // 	rule_vand(v0, rs->rules[j].captures,
-    // 	    labels[0].truthtable, rs->n_samples, &n0);
-    // 	n1 = rs->rules[j].ncaptured - n0;
-    // 	log_likelihood += log_gammas[n0 + a0] +
-    // 	    log_gammas[n1 + a1] - 
-    // 	    log_gammas[n0 + n1 + a01];
-    // 	// Added for prefix_bound.
-    // 	left0 -= n0;
-    // 	left1 -= n1;
-    // 	if (j < length4bound) {
-    // 		prefix_log_likelihood += log_gammas[n0 + a0] +
-    // 		    log_gammas[n1 + a1] - log_gammas[n0 + n1 + a01];
-    // 		if (j == (length4bound - 1)) {
-    // 			prefix_log_likelihood += log_gammas[a1] + 
-    // 			    log_gammas[left0 + a0] - 
-    // 			    log_gammas[left0 + a01] + 
-    // 			    log_gammas[a0] + 
-    // 			    log_gammas[left1 + a1] - 
-    // 			    log_gammas[left1 + a01];
-    // 		}
-    // 	}
-    // }
     *prefix_bound = prefix_prior + prefix_log_likelihood;
-    if (*prefix_bound < -1000. || *prefix_bound > 0) {
-        printf("abnormal prefix_bound!\n");
+    if (debug && (*prefix_bound < -1000. || *prefix_bound > 0.1)) {
+        printf("abnormal prefix_bound %.6f\n", *prefix_bound);
         printf("prior: %.6f; likelihood: %.6f\n", prefix_prior, prefix_log_likelihood);
+        printf("norm_constant: %.6f, eta_norm: %.6f\n", norm_constant, eta_norm);
+        printf("max_p_lambda: %d, length4bound: %d\n", max_p_lambda, length4bound);
+        printf("local_cards: [");
+        for (int i = 0; i < MAX_RULE_CARDINALITY; i++) {
+            printf("%d,", local_cards[i]);
+        }
+        printf("]\n");
     }
     if (debug > 20)
         printf("log_prior = %6f\t log_likelihood = %6f\n",

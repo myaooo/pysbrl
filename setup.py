@@ -18,13 +18,15 @@ libraries=['gsl', 'gslcblas', 'gmp']
 if sysconfig.get_config_var("LIBM") == "-lm":
     libraries.append("m")
 
-includes = ['/usr/local/include']
+include_dirs = ['/usr/local/include']
+
+library_dirs = ['/usr/local/lib']
 
 pysbrl_module = Extension('_pysbrl',
                            sources=['pysbrl.i', 'pysbrl.c', 'train.c', 'rulelib.c'],
-                           include_dirs= includes,
+                           include_dirs= include_dirs,
                            libraries=libraries,
-                           library_dirs=['/usr/local/lib'],
+                           library_dirs=library_dirs,
                            swig_opts=['-keyword'],
                            extra_link_args=["-static"],
                            )
@@ -44,12 +46,12 @@ class CustomBuildExtCommand(build_ext):
 
 
 setup (name = 'pysbrl',
-       version = '0.5',
+       version = '0.6',
        author      = "Yao, Ming",
        description = """A python interface of Scalable Bayesian Rule List""",
        ext_modules = [pysbrl_module],
        py_modules = ["pysbrl"],
-        requires = ['numpy'],
+        install_requires = ['numpy'],
         cmdclass = {'build_ext': CustomBuildExtCommand},
     #    extra_link_args = ["-bundle"],
        )

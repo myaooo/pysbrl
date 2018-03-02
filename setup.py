@@ -18,9 +18,9 @@ libraries=['gsl', 'gslcblas', 'gmp']
 if sysconfig.get_config_var("LIBM") == "-lm":
     libraries.append("m")
 
-include_dirs = ['/usr/local/include']
+include_dirs = ['/usr/local/include', '/usr/include']
 
-library_dirs = ['/usr/local/lib']
+library_dirs = ['/usr/local/lib', 'usr/lib']
 
 pysbrl_module = Extension('_pysbrl',
                            sources=['pysbrl.i', 'pysbrl.c', 'train.c', 'rulelib.c'],

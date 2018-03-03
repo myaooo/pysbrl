@@ -4,16 +4,18 @@
 setup.py file
 """
 
-import os
-
-from distutils import sysconfig
-from distutils.core import setup, Extension
-from distutils.command.build_ext import build_ext
+# import sys
+import sysconfig
+from setuptools import setup, find_packages
+from setuptools.extension import Extension
+from setuptools.command.build_ext import build_ext
 
 # includes = []
 # includes.append(os.path.join(sysconfig.get_python_inc(plat_specific=0), 'numpy'))
 
-libraries=['gsl', 'gslcblas', 'gmp']
+# platform = sysconfig.get_platform()
+
+libraries = ['gsl', 'gslcblas', 'gmp']
 
 if sysconfig.get_config_var("LIBM") == "-lm":
     libraries.append("m")
@@ -23,18 +25,19 @@ include_dirs = ['/usr/local/include', '/usr/include']
 library_dirs = ['/usr/local/lib', 'usr/lib']
 
 pysbrl_module = Extension('_pysbrl',
-                           sources=['pysbrl.i', 'pysbrl.c', 'train.c', 'rulelib.c'],
-                           include_dirs= include_dirs,
-                           libraries=libraries,
-                           library_dirs=library_dirs,
-                           swig_opts=['-keyword'],
-                           extra_link_args=["-Bstatic"],
-                           )
+                          sources=['pysbrl.c', 'train.c', 'rulelib.c', 'pysbrl_wrap.c'],
+                          include_dirs=include_dirs,
+                          libraries=libraries,
+                          library_dirs=library_dirs,
+                          swig_opts=['-keyword'],
+                          extra_link_args=["-Bstatic"],
+                          )
+
 
 class CustomBuildExtCommand(build_ext):
     """build_ext command for use when numpy headers are needed."""
-    def run(self):
 
+    def run(self):
         # Import numpy here, only when headers are needed
         import numpy
 
@@ -45,13 +48,14 @@ class CustomBuildExtCommand(build_ext):
         build_ext.run(self)
 
 
-setup (name = 'pysbrl',
-       version = '0.6',
-       author      = "Yao, Ming",
-       description = """A python interface of Scalable Bayesian Rule List""",
-       ext_modules = [pysbrl_module],
-       py_modules = ["pysbrl"],
-        install_requires = ['numpy'],
-        cmdclass = {'build_ext': CustomBuildExtCommand},
-    #    extra_link_args = ["-bundle"],
-       )
+setup(name='pysbrl',
+      version='0.6',
+      author="Yao, Ming",
+      description="""A python interface of Scalable Bayesian Rule List""",
+      ext_modules=[pysbrl_module],
+      url='https://github.com/myaooo/pysbrl',
+      py_modules=["pysbrl"],
+      requires=['numpy'],
+      cmdclass={'build_ext': CustomBuildExtCommand},
+      #    extra_link_args = ["-bundle"],
+      )

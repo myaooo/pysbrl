@@ -25,6 +25,8 @@
  * Scalable Bayesian Rulelist training
  */
 
+#define _GNU_SOURCE
+
 #include <assert.h>
 #include <errno.h>
 #include <float.h>
@@ -77,8 +79,8 @@ double compute_log_posterior(ruleset_t *,
     rule_t *, int, rule_t *, params_t *, int, int, double *);
 int gen_poission(double);
 gsl_matrix *get_theta(ruleset_t *, rule_t *, rule_t *, params_t *);
-void gsl_ran_poisson_test();
-void init_gsl_rand_gen();
+//void gsl_ran_poisson_test();
+void init_gsl_rand_gen(void);
 
 #define MAX(x, y) ((x) < (y) ? (y) : (x))
 
@@ -233,11 +235,12 @@ compute_log_gammas(int nsamples, params_t *params)
 int
 compute_pmf(int nrules, params_t *params)
 {
-    int i, pmf_size = nrules;
+    int i;
+//    int pmf_size = nrules;
     if (((int) params->lambda) > nrules) {
         fprintf(stderr, "Error: lambda is %.1f, larger than nrules: %d. Setting lambda to nrules to avoid numerical issues\n", params->lambda, nrules);
         params->lambda = (double) nrules;
-        pmf_size = nrules+1;
+//        pmf_size = nrules+1;
     }
     if ((log_lambda_pmf = malloc(nrules * sizeof(double))) == NULL)
         return (errno);
@@ -808,7 +811,7 @@ ruleset_proposal(ruleset_t * rs, int nrules,
 }
 
 void
-init_gsl_rand_gen()
+init_gsl_rand_gen(void)
 {
     // printf("entering init_gsl_rand_gen\n");
     gsl_rng_env_setup();
@@ -839,35 +842,35 @@ gen_gamma_pdf (double x, double a, double b)
     return (gsl_ran_gamma_pdf(x, a, b));
 }
 
-void
-gsl_ran_poisson_test()
-{
-    int i, j;
-    unsigned int k1 = gsl_ran_poisson(RAND_GSL, 5);
-    unsigned int k2 = gsl_ran_poisson(RAND_GSL, 5);
-
-    printf("k1 = %u , k2 = %u\n", k1, k2);
-
-    //number of experiments
-    const int nrolls = 10000;
-
-    //maximum number of stars to distribute
-    const int nstars = 100;
-
-    int p[10] = {};
-    for (i = 0; i < nrolls; ++i) {
-        unsigned int number = gsl_ran_poisson(RAND_GSL, 4.1);
-
-        if (number < 10)
-            ++p[number];
-    }
-
-    printf("poisson_distribution (mean=4.1):\n");
-
-    for (i = 0; i < 10; ++i) {
-        printf("%d, : ", i);
-        for (j = 0; j < p[i] * nstars / nrolls; j++)
-            printf("*");
-        printf("\n");
-    }
-}
+//void
+//gsl_ran_poisson_test()
+//{
+//    int i, j;
+//    unsigned int k1 = gsl_ran_poisson(RAND_GSL, 5);
+//    unsigned int k2 = gsl_ran_poisson(RAND_GSL, 5);
+//
+//    printf("k1 = %u , k2 = %u\n", k1, k2);
+//
+//    //number of experiments
+//    const int nrolls = 10000;
+//
+//    //maximum number of stars to distribute
+//    const int nstars = 100;
+//
+//    int p[10] = {};
+//    for (i = 0; i < nrolls; ++i) {
+//        unsigned int number = gsl_ran_poisson(RAND_GSL, 4.1);
+//
+//        if (number < 10)
+//            ++p[number];
+//    }
+//
+//    printf("poisson_distribution (mean=4.1):\n");
+//
+//    for (i = 0; i < 10; ++i) {
+//        printf("%d, : ", i);
+//        for (j = 0; j < p[i] * nstars / nrolls; j++)
+//            printf("*");
+//        printf("\n");
+//    }
+//}

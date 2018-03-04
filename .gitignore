@@ -38,6 +38,8 @@
 *.x86_64
 *.hex
 
+!data/*
+
 # Debug files
 *.dSYM/
 *.su

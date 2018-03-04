@@ -31,6 +31,7 @@ pysbrl_module = Extension('_pysbrl',
                           library_dirs=library_dirs,
                           swig_opts=['-keyword'],
                           extra_link_args=["-Bstatic"],
+                          extra_compile_args=['-std=gnu99']
                           )
 
 
@@ -49,7 +50,7 @@ class CustomBuildExtCommand(build_ext):
 
 
 setup(name='pysbrl',
-      version='0.6',
+      version='0.2',
       author="Yao, Ming",
       description="""A python interface of Scalable Bayesian Rule List""",
       ext_modules=[pysbrl_module],

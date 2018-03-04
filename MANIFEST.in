@@ -1,0 +1,7 @@
+include pysbrl.c
+include pysbrl.h
+include rulelib.c
+include train.c
+include pysbrl_wrap.c
+
+include data/*

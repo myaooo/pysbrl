@@ -4,4 +4,4 @@ include rulelib.c
 include train.c
 include pysbrl_wrap.c
 
-include data/*
+include data/ttt_test.*

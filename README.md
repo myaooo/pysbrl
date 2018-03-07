@@ -49,6 +49,8 @@ On macOS, you can easily install them via Homebrew
 brew install gsl gmp
 ```
 
+To properly build this module, you need also install swig to generate interface code for wrapping.
+
 ### Install
 
 ```bash
@@ -56,3 +58,12 @@ git clone https://github.com/myaooo/pysbrl
 cd pysbrl
 pip install -e .
 ```
+
+### Dev
+
+The major code for this project is `train.c`, `rulelib.c`, and `pysbrl.c`. 
+`pysbrl.c` defines the api that exposes to python.
+
+The interface between C and python is defined in `pysbrl.i`.
+
+After modifying the code, run `swig -Wall -python pysbrl.i` to generate `pysbrl_wrap.c` and `pysbrl.py`.

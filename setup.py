@@ -50,7 +50,7 @@ class CustomBuildExtCommand(build_ext):
 
 
 setup(name='pysbrl',
-      version='0.2',
+      version='0.3',
       author="Yao, Ming",
       description="""A python interface of Scalable Bayesian Rule List""",
       ext_modules=[pysbrl_module],

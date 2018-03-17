@@ -3782,7 +3782,7 @@ SWIG_AsVal_int (PyObject * obj, int *val)
 #ifdef __cplusplus
 extern "C" {
 #endif
-SWIGINTERN PyObject *_wrap_train_sbrl(PyObject *SWIGUNUSEDPARM(self), PyObject *args, PyObject *kwargs) {
+SWIGINTERN PyObject *_wrap_train_sbrl(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
@@ -3829,9 +3829,6 @@ SWIGINTERN PyObject *_wrap_train_sbrl(PyObject *SWIGUNUSEDPARM(self), PyObject *
   PyObject * obj4 = 0 ;
   PyObject * obj5 = 0 ;
   PyObject * obj6 = 0 ;
-  char *  kwnames[] = {
-    (char *) "data_file",(char *) "label_file",(char *) "_lambda",(char *) "eta",(char *) "max_iters",(char *) "nchain",(char *) "alphas", NULL 
-  };
   int result;
   
   {
@@ -3847,7 +3844,7 @@ SWIGINTERN PyObject *_wrap_train_sbrl(PyObject *SWIGUNUSEDPARM(self), PyObject *
     arg15 = &tmp_strings14;
     arg14 = &tmp_n14;
   }
-  if (!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOOOO:train_sbrl",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOO:train_sbrl",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) SWIG_fail;
   res1 = SWIG_AsCharPtrAndSize(obj0, &buf1, NULL, &alloc1);
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "train_sbrl" "', argument " "1"" of type '" "char const *""'");
@@ -3976,7 +3973,7 @@ fail:
 
 static PyMethodDef SwigMethods[] = {
 	 { (char *)"SWIG_PyInstanceMethod_New", (PyCFunction)SWIG_PyInstanceMethod_New, METH_O, NULL},
-	 { (char *)"train_sbrl", (PyCFunction) _wrap_train_sbrl, METH_VARARGS | METH_KEYWORDS, NULL},
+	 { (char *)"train_sbrl", _wrap_train_sbrl, METH_VARARGS, NULL},
 	 { NULL, NULL, 0, NULL }
 };
 

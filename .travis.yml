@@ -1,0 +1,15 @@
+sudo: required
+
+language: python
+
+python:
+  - "3.4"
+  - "3.5"
+  - "3.6"
+
+services:
+  - docker
+
+script:
+  - scripts/compile_swig.sh
+  - scripts/run_docker_build.sh

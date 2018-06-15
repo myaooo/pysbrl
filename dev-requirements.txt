@@ -1,1 +1,5 @@
 numpy
+fim>=6.27
+pytest
+scikit-learn==0.19
+mdlp-discretization

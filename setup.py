@@ -10,11 +10,6 @@ from setuptools import setup, find_packages
 from setuptools.extension import Extension
 from setuptools.command.build_ext import build_ext
 
-# includes = []
-# includes.append(os.path.join(sysconfig.get_python_inc(plat_specific=0), 'numpy'))
-
-# platform = sysconfig.get_platform()
-
 libraries = ['gsl', 'gslcblas', 'gmp']
 
 if sysconfig.get_config_var("LIBM") == "-lm":
@@ -25,7 +20,7 @@ include_dirs = ['/usr/local/include', '/usr/include']
 library_dirs = ['/usr/local/lib', 'usr/lib']
 
 pysbrl_module = Extension('_pysbrl',
-                          sources=['pysbrl.c', 'train.c', 'rulelib.c', 'pysbrl_wrap.c'],
+                          sources=['c/pysbrl.c', 'c/train.c', 'c/rulelib.c', 'swig/pysbrl_wrap.c'],
                           include_dirs=include_dirs,
                           libraries=libraries,
                           library_dirs=library_dirs,

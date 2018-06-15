@@ -98,7 +98,7 @@ except __builtin__.Exception:
 
 def train_sbrl(data_file, label_file, arg3, eta, max_iters, nchain, alphas):
     return _pysbrl.train_sbrl(data_file, label_file, arg3, eta, max_iters, nchain, alphas)
-# train_sbrl = _pysbrl.train_sbrl
+train_sbrl = _pysbrl.train_sbrl
 # This file is compatible with both classic and new-style classes.
 
 

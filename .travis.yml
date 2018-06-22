@@ -24,4 +24,4 @@ install:
 
 script:
   - docker run -v `pwd`:/code $DOCKER_IMAGE /code/scripts/docker_build.sh
-  - ls wheelhouse/
+  - ls

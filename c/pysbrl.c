@@ -6,11 +6,11 @@
 #include "rule.h"
 #include <gsl/gsl_matrix.h>
 
-int verbose = 0;
+//int verbose = 0;
 
 int train_sbrl(const char *data_file, const char *label_file,
     double lambda, double eta, int max_iters, int nchain, int * alphas, int n_alpha,
-    // int verbose,
+    int verbose,
     int *ret_n_rules, int ** ret_rule_ids, 
     int *ret_n_probs, int *ret_n_classes, double ** ret_probs,
     int *ret_n_all_rules, char *** ret_all_rule_features) 
@@ -20,7 +20,7 @@ int train_sbrl(const char *data_file, const char *label_file,
     int n_samples, n_rules, n_classes;
     rule_t *rules, *labels;
     if (verbose > 0)
-        fprintf(stdout, "Info: Laod data files %s and %s\n", data_file, label_file);
+        fprintf(stdout, "Info: Load data files %s and %s\n", data_file, label_file);
     int ret = load_data(data_file, label_file, 
         &n_samples, &n_rules, &n_classes, &rules, &labels);
     if (ret != 0) {
@@ -39,23 +39,26 @@ int train_sbrl(const char *data_file, const char *label_file,
     params.iters = max_iters;
     params.nchain = nchain;
     params.n_classes = n_classes;
+    params.alpha = malloc(sizeof(int) * n_classes);
     int alpha = -1;
     if (n_alpha != n_classes) {
-        if (n_alpha == 1) {
-            n_alpha = n_classes;
-        }
-        else {
+        if (n_alpha != 1) {
             fprintf(stderr, "Error: Expect to have %d alphas, but received %d. Using the first alpha to fill all alphas...\n", n_classes, n_alpha);
         }
-        params.alpha = malloc(sizeof(int) * n_alpha);
         alpha = alphas[0];
-        memset(params.alpha, alpha, n_alpha * sizeof(int));
+        for (int i = 0; i < n_classes; i++)
+            params.alpha[i] = alpha;
+    } else {
+        for (int i = 0; i < n_classes; i++)
+            params.alpha[i] = alphas[i];
     }
-    else {
-        params.alpha = alphas;
+    if (verbose > 0) {
+        fprintf(stdout, "Info: Alphas: ");
+        for (int i = 0; i < n_classes; i++) {
+            fprintf(stdout, "%d/%d ", params.alpha[i], alphas[i]);
+        }
+        fprintf(stdout, "\nInfo: Start the training...\n");
     }
-    if (verbose > 0)
-        fprintf(stdout, "Info: Start the training...\n");
     pred_model_t * model = train(&data, 0, 0, &params);
     if (verbose > 0)
         fprintf(stdout, "Info: Training done.\n");
@@ -88,11 +91,10 @@ int train_sbrl(const char *data_file, const char *label_file,
     *ret_n_all_rules = n_rules;
     *ret_all_rule_features = feature_lists;
 
+    free(params.alpha);
+
     if (verbose > 1)
-        fprintf(stdout, "Output prepared\n");
-    if (alpha != -1)
-        free(params.alpha);
-    if (verbose > 1)
-        fprintf(stdout, "Returning\n");
+        fprintf(stdout, "Output prepared. Finished\n");
+
     return 0;
 }

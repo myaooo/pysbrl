@@ -3792,13 +3792,14 @@ SWIGINTERN PyObject *_wrap_train_sbrl(PyObject *SWIGUNUSEDPARM(self), PyObject *
   int arg6 ;
   int *arg7 = (int *) 0 ;
   int arg8 ;
-  int *arg9 = (int *) 0 ;
-  int **arg10 = (int **) 0 ;
-  int *arg11 = (int *) 0 ;
+  int arg9 ;
+  int *arg10 = (int *) 0 ;
+  int **arg11 = (int **) 0 ;
   int *arg12 = (int *) 0 ;
-  double **arg13 = (double **) 0 ;
-  int *arg14 = (int *) 0 ;
-  char ***arg15 = (char ***) 0 ;
+  int *arg13 = (int *) 0 ;
+  double **arg14 = (double **) 0 ;
+  int *arg15 = (int *) 0 ;
+  char ***arg16 = (char ***) 0 ;
   int res1 ;
   char *buf1 = 0 ;
   int alloc1 = 0 ;
@@ -3815,13 +3816,15 @@ SWIGINTERN PyObject *_wrap_train_sbrl(PyObject *SWIGUNUSEDPARM(self), PyObject *
   int ecode6 = 0 ;
   PyArrayObject *array7 = NULL ;
   int is_new_object7 = 0 ;
-  int dim_temp9 ;
-  int *data_temp9 = NULL ;
-  int dim1_temp11 ;
-  int dim2_temp11 ;
-  double *data_temp11 = NULL ;
-  int tmp_n14 = 1 ;
-  char **tmp_strings14 = NULL ;
+  int val9 ;
+  int ecode9 = 0 ;
+  int dim_temp10 ;
+  int *data_temp10 = NULL ;
+  int dim1_temp12 ;
+  int dim2_temp12 ;
+  double *data_temp12 = NULL ;
+  int tmp_n15 = 1 ;
+  char **tmp_strings15 = NULL ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -3829,22 +3832,23 @@ SWIGINTERN PyObject *_wrap_train_sbrl(PyObject *SWIGUNUSEDPARM(self), PyObject *
   PyObject * obj4 = 0 ;
   PyObject * obj5 = 0 ;
   PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
   int result;
   
   {
-    arg9 = &dim_temp9;
-    arg10 = &data_temp9;
+    arg10 = &dim_temp10;
+    arg11 = &data_temp10;
   }
   {
-    arg11 = &dim1_temp11;
-    arg12 = &dim2_temp11;
-    arg13 = &data_temp11;
+    arg12 = &dim1_temp12;
+    arg13 = &dim2_temp12;
+    arg14 = &data_temp12;
   }
   {
-    arg15 = &tmp_strings14;
-    arg14 = &tmp_n14;
+    arg16 = &tmp_strings15;
+    arg15 = &tmp_n15;
   }
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOO:train_sbrl",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOO:train_sbrl",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7)) SWIG_fail;
   res1 = SWIG_AsCharPtrAndSize(obj0, &buf1, NULL, &alloc1);
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "train_sbrl" "', argument " "1"" of type '" "char const *""'");
@@ -3887,7 +3891,12 @@ SWIGINTERN PyObject *_wrap_train_sbrl(PyObject *SWIGUNUSEDPARM(self), PyObject *
     arg7 = (int*) array_data(array7);
     arg8 = (int) array_size(array7,0);
   }
-  result = (int)train_sbrl((char const *)arg1,(char const *)arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15);
+  ecode9 = SWIG_AsVal_int(obj7, &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "train_sbrl" "', argument " "9"" of type '" "int""'");
+  } 
+  arg9 = (int)(val9);
+  result = (int)train_sbrl((char const *)arg1,(char const *)arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16);
   {
     if (result == 2) {
       PyErr_SetString(PyExc_LookupError, "No such file or directory");
@@ -3896,17 +3905,17 @@ SWIGINTERN PyObject *_wrap_train_sbrl(PyObject *SWIGUNUSEDPARM(self), PyObject *
   }
   {
     npy_intp dims[1] = {
-      *arg9 
+      *arg10 
     };
-    PyObject* obj = PyArray_SimpleNewFromData(1, dims, NPY_INT, (void*)(*arg10));
+    PyObject* obj = PyArray_SimpleNewFromData(1, dims, NPY_INT, (void*)(*arg11));
     PyArrayObject* array = (PyArrayObject*) obj;
     
     if (!array) SWIG_fail;
     
 #ifdef SWIGPY_USE_CAPSULE
-    PyObject* cap = PyCapsule_New((void*)(*arg10), SWIGPY_CAPSULE_NAME, free_cap);
+    PyObject* cap = PyCapsule_New((void*)(*arg11), SWIGPY_CAPSULE_NAME, free_cap);
 #else
-    PyObject* cap = PyCObject_FromVoidPtr((void*)(*arg10), free);
+    PyObject* cap = PyCObject_FromVoidPtr((void*)(*arg11), free);
 #endif
     
 #if NPY_API_VERSION < 0x00000007
@@ -3919,17 +3928,17 @@ SWIGINTERN PyObject *_wrap_train_sbrl(PyObject *SWIGUNUSEDPARM(self), PyObject *
   }
   {
     npy_intp dims[2] = {
-      *arg11, *arg12 
+      *arg12, *arg13 
     };
-    PyObject* obj = PyArray_SimpleNewFromData(2, dims, NPY_DOUBLE, (void*)(*arg13));
+    PyObject* obj = PyArray_SimpleNewFromData(2, dims, NPY_DOUBLE, (void*)(*arg14));
     PyArrayObject* array = (PyArrayObject*) obj;
     
     if (!array) SWIG_fail;
     
 #ifdef SWIGPY_USE_CAPSULE
-    PyObject* cap = PyCapsule_New((void*)(*arg13), SWIGPY_CAPSULE_NAME, free_cap);
+    PyObject* cap = PyCapsule_New((void*)(*arg14), SWIGPY_CAPSULE_NAME, free_cap);
 #else
-    PyObject* cap = PyCObject_FromVoidPtr((void*)(*arg13), free);
+    PyObject* cap = PyCObject_FromVoidPtr((void*)(*arg14), free);
 #endif
     
 #if NPY_API_VERSION < 0x00000007
@@ -3941,8 +3950,8 @@ SWIGINTERN PyObject *_wrap_train_sbrl(PyObject *SWIGUNUSEDPARM(self), PyObject *
     resultobj = SWIG_Python_AppendOutput(resultobj,obj);
   }
   {
-    char ** _strings = *arg15;
-    int _n_strings = *arg14;
+    char ** _strings = *arg16;
+    int _n_strings = *arg15;
     PyObject *o = PyList_New(_n_strings);
     for (int i = 0; i < _n_strings; i++) {
       PyList_SetItem(o, i, PyUnicode_FromString(_strings[i]));

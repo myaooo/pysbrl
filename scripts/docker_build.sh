@@ -20,6 +20,10 @@ done
 
 # Install packages and test
 for PYBIN in /opt/python/*/bin/; do
-    ${PYBIN}/pip install python-manylinux-demo --no-index -f /code/wheelhouse
-    (cd $HOME; ${PYBIN}/nosetests pymanylinuxdemo)
+    ${PYBIN}/pip install pysbrl --no-index -f /code/wheelhouse
+    if [ "$PYBIN" == "/opt/python/cp27-cp27m/bin" ]; then
+        (cd /code; ${PYBIN}/python -m py.test)
+        continue
+    fi
+    (cd /code; ${PYBIN}/python -m pytest)
 done

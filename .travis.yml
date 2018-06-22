@@ -1,15 +1,27 @@
-sudo: required
+addons:
+  apt:
+    packages:
+      - swig
 
-language: python
+notifications:
+  email: false
 
-python:
-  - "3.4"
-  - "3.5"
-  - "3.6"
+matrix:
+  include:
+    - sudo: required
+      services:
+        - docker
+      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
+    - sudo: required
+      services:
+        - docker
+      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
+           PRE_CMD=linux32
 
-services:
-  - docker
+install:
+  - scripts/compile_swig.sh
+  - docker pull $DOCKER_IMAGE
 
 script:
-  - scripts/compile_swig.sh
   - scripts/run_docker_build.sh
+  - ls wheelhouse

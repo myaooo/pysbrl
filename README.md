@@ -67,3 +67,15 @@ The major code for this project is `train.c`, `rulelib.c`, and `pysbrl.c`.
 The interface between C and python is defined in `pysbrl.i`.
 
 After modifying the code, run `swig -Wall -python pysbrl.i` to generate `pysbrl_wrap.c` and `pysbrl.py`.
+
+### Build
+
+To build all wheels for linux, you can use docker.
+
+First pull the manylinux docker image:
+
+```bash
+docker pull quay.io/pypa/manylinux1_x86_64:latest
+```
+
+Then run the `scripts/run_docker_build.sh` to build the wheels.

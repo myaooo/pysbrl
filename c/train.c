@@ -322,7 +322,7 @@ permute_rules(int nrules)
 
 }
 
-pred_model_t   *
+pred_model_t *
 train(data_t *train_data, int initialization, int method, params_t *params)
 {
     int chain, default_rule;
@@ -359,10 +359,13 @@ train(data_t *train_data, int initialization, int method, params_t *params)
         rs_temp = run_mcmc(params->iters,
             train_data->nsamples, train_data->nrules,
             train_data->rules, train_data->labels, params, max_pos);
+        if (rs_temp == NULL) {
+            // mcmc return null rule set
+            continue;
+        }
         pos_temp = compute_log_posterior(rs_temp, train_data->rules,
             train_data->nrules, train_data->labels, params, 1, -1,
             &null_bound);
-
         if (pos_temp >= max_pos) {
             ruleset_destroy(rs);
             rs = rs_temp;
@@ -371,6 +374,10 @@ train(data_t *train_data, int initialization, int method, params_t *params)
             ruleset_destroy(rs_temp);
         }
     }
+
+    // after nchain runs, no available rule set is founded.
+    if (rs == NULL)
+        goto err;
 
     pred_model->theta =
         get_theta(rs, train_data->rules, train_data->labels, params);
@@ -490,7 +497,7 @@ run_mcmc(int iters, int nsamples, int nrules,
         if (rs != NULL) {
             ruleset_destroy(rs);
             count++;
-            if (count == (nrules - 1)) {
+            if (count == (nrules - 1) && debug) {
                 printf("No ruleset with enough bound after %d runs\n", count);
                 return (NULL);
             }

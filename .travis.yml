@@ -6,6 +6,14 @@ addons:
 notifications:
   email: false
 
+deploy:
+  provider: pypi
+  user: $PYPI_USER
+  password: $PYPI_PASSWORD
+  skip_cleanup: true
+  on:
+    tags: true
+
 matrix:
   include:
     - sudo: required
@@ -24,4 +32,4 @@ install:
 
 script:
   - docker run -v `pwd`:/code $DOCKER_IMAGE /code/scripts/docker_build.sh
-  - ls
+  - ls wheelhouse/

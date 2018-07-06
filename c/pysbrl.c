@@ -10,7 +10,7 @@
 
 int train_sbrl(const char *data_file, const char *label_file,
     double lambda, double eta, int max_iters, int nchain, int * alphas, int n_alpha,
-    int verbose,
+    long seed, int verbose,
     int *ret_n_rules, int ** ret_rule_ids, 
     int *ret_n_probs, int *ret_n_classes, double ** ret_probs,
     int *ret_n_all_rules, char *** ret_all_rule_features) 
@@ -47,15 +47,15 @@ int train_sbrl(const char *data_file, const char *label_file,
     if (verbose > 0) {
         fprintf(stdout, "Info: Alphas: ");
         for (int i = 0; i < n_classes; i++) {
-            fprintf(stdout, "%d/%d ", params.alpha[i], alphas[i]);
+            fprintf(stdout, "%d ", params.alpha[i]);
         }
         fprintf(stdout, "\nInfo: Start the training...\n");
     }
-    pred_model_t * model = train(&data, &params, 0);
+    pred_model_t * model = train(&data, &params, seed);
     if (verbose > 0)
         fprintf(stdout, "Info: Training done.\n");
     if (verbose > 1)
-        fprintf(stdout, "Preparing outputs\n");
+        fprintf(stdout, "INFO: Preparing outputs\n");
     rulelist_t * rs = model->rs;
     int * rule_ids = malloc(rs->n_rules * sizeof(int));
     double * probs = malloc(rs->n_rules * n_classes * sizeof(double));
@@ -71,10 +71,14 @@ int train_sbrl(const char *data_file, const char *label_file,
         }
     }
 
-    for (int i = 0; i < rs->n_rules; i++) {
-        feature_lists[i] = data.rules[i].feature_str;
+//    strcpy(feature_lists[0], "default\0");
+    if (verbose > 10)
+        fprintf(stdout, "INFO: Copy feature strings...\n");
+    for (int i = 0; i < data.n_rules; i++) {
+        feature_lists[i] = strdup(data.rules[i].feature_str);
     }
-
+    if (verbose > 10)
+        fprintf(stdout, "INFO: Assigning\n");
     *ret_n_rules = rs->n_rules;
     *ret_rule_ids = rule_ids;
     *ret_n_probs = rs->n_rules;
@@ -83,13 +87,28 @@ int train_sbrl(const char *data_file, const char *label_file,
     *ret_n_all_rules = data.n_rules;
     *ret_all_rule_features = feature_lists;
 
+//  Clean up
+    if (verbose > 10)
+        fprintf(stdout, "INFO: Freeing rule set\n");
+    ruleset_destroy(model->rs);
+    if (verbose > 10)
+        fprintf(stdout, "INFO: Freeing theta\n");
+    free(model->theta);
+    free(model);
     free(params.alpha);
+    if (verbose > 10)
+        fprintf(stdout, "INFO: Freeing rules\n");
+    rules_free(data.rules, data.n_rules);
+    if (verbose > 10)
+        fprintf(stdout, "INFO: Freeing labels\n");
+    rules_free(data.labels, data.n_classes);
 
     if (verbose > 1)
         fprintf(stdout, "Output prepared. Finished\n");
 
     return 0;
 }
+
 
 int sbrl_predict() {
 

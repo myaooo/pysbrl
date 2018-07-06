@@ -151,6 +151,6 @@ gsl_matrix *predict(pred_model_t *, rule_data_t *labels, params_t *);
 int ruleset_proposal(rulelist_t *, int, int *, int *, char *, double *);
 rulelist_t *run_mcmc(data_t *, params_t *, double);
 rulelist_t *run_simulated_annealing(data_t *, params_t *, int);
-pred_model_t *train(data_t *, params_t *, unsigned);
+pred_model_t *train(data_t *, params_t *, long);
 
 #endif //SBRL_RULE_H

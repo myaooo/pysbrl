@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "rule.h"
+#include "utils.h"
 
 
 int
@@ -128,7 +129,7 @@ rules_init_from_stream(FILE *fi, int *n_rules, int *n_samples,
             features = line;
             if ((rulestr = strsep(&features, " ")) == NULL)
                 goto err;
-            if ((rules[rule_cnt].feature_str = strdup(rulestr)) == NULL)
+            if ((rules[rule_cnt].feature_str = _strdup(rulestr)) == NULL)
                 goto err;
             rulelen = strlen(rulestr) + 1;
             len -= rulelen;
@@ -163,6 +164,7 @@ rules_init_from_stream(FILE *fi, int *n_rules, int *n_samples,
         rules[0].cardinality = 0;
         if ((rules[0].truthtable = bit_vector_init((unsigned) *n_samples)) == NULL)
             goto err;
+        rules[0].feature_str = _strdup("default");
         bit_vector_flip_all(rules[0].truthtable);
     }
 

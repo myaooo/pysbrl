@@ -10,23 +10,24 @@ from setuptools import setup, find_packages
 from setuptools.extension import Extension
 from setuptools.command.build_ext import build_ext
 
-libraries = ['gsl', 'gslcblas', 'gmp']
+libraries = ['gsl', 'gslcblas']
 
 if sysconfig.get_config_var("LIBM") == "-lm":
     libraries.append("m")
 
-include_dirs = ['/usr/local/include', '/usr/include']
+include_dirs = ['/usr/local/include', '/usr/include', 'c/']
 
 library_dirs = ['/usr/local/lib', 'usr/lib']
 
 pysbrl_module = Extension('_pysbrl',
-                          sources=['c/pysbrl.c', 'c/train.c', 'c/rulelib.c', 'swig/pysbrl_wrap.c'],
+                          sources=['c/pysbrl.c', 'c/train.c', 'c/rulelib.c', 'c/save_load.c',
+                                   'c/bit_vector.c', 'c/utils.c', 'swig/pysbrl_wrap.c'],
                           include_dirs=include_dirs,
                           libraries=libraries,
                           library_dirs=library_dirs,
                           swig_opts=['-keyword'],
                           extra_link_args=["-Bstatic"],
-                          extra_compile_args=['-std=gnu99']
+                          extra_compile_args=['-std=c99']
                           )
 
 

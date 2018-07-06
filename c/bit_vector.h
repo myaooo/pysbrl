@@ -52,6 +52,7 @@ bit_vector_t* bit_vector_from_bytes(const char *bytes, bit_size_t len);
 
 void bit_vector_and_eq(bit_vector_t *dest, const bit_vector_t *src);
 void bit_vector_or_eq(bit_vector_t *dest, const bit_vector_t *src);
+void bit_vector_xor_eq(bit_vector_t *dest, const bit_vector_t *src);
 void bit_vector_and(bit_vector_t *dest, const bit_vector_t *src1, const bit_vector_t *src2);
 void bit_vector_or(bit_vector_t *dest, const bit_vector_t *src1, const bit_vector_t *src2);
 void bit_vector_and_eq_not(bit_vector_t *dest, const bit_vector_t *src);

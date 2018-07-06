@@ -169,6 +169,7 @@ void name(bit_vector_t *dest, const bit_vector_t *src1, const bit_vector_t *src2
 
 #define op_and_eq(dest, src) ((dest) &= (src))
 #define op_or_eq(dest, src) ((dest) |= (src))
+#define op_xor_eq(dest, src) ((dest) ^= (src))
 #define op_and_eq_not(dest, src) ((dest) &= (~(src)))
 #define op_or_eq_and(dest, src1, src2) ((dest) |= (src1) & (src2))
 #define op_and(dest, src1, src2) ((dest) = (src1) & (src2))
@@ -176,6 +177,7 @@ void name(bit_vector_t *dest, const bit_vector_t *src1, const bit_vector_t *src2
 
 bit_vector_func_def_2ops(bit_vector_and_eq, op_and_eq)
 bit_vector_func_def_2ops(bit_vector_or_eq, op_or_eq)
+bit_vector_func_def_2ops(bit_vector_xor_eq, op_xor_eq)
 bit_vector_func_def_2ops(bit_vector_and_eq_not, op_and_eq_not)
 bit_vector_func_def_3ops(bit_vector_and, op_and)
 bit_vector_func_def_3ops(bit_vector_or, op_or)

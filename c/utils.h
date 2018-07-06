@@ -7,5 +7,6 @@
 
 int arr_sum(int n, const int *arr);
 int arr_max(int n, const int *arr);
+char * _strdup(const char * src);
 
 #endif //SBRL_UTILS_H

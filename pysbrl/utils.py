@@ -22,7 +22,7 @@ def before_save(file_or_dir):
 
 def get_fim_method(method='eclat'):
     if hasattr(fim, method):
-        return getattr(fim, method, default=fim.eclat)
+        return getattr(fim, method, fim.eclat)
     return fim.eclat
 
 
@@ -90,6 +90,7 @@ def categorical2pysbrl_data(
             bit_s = ' '.join(['1' if bit else '0' for bit in bits])
             f.write(bit_s)
             f.write('\n')
+    return rules
 
 
 def categorical2transactions(x):
@@ -134,7 +135,7 @@ def transactions2freqitems(transactions_by_labels, mine, supp=0.05, zmin=1, zmax
 
     itemsets = list(itemsets)
 
-    print("Total {:d} itemsets mined".format(len(itemsets)))
+    # print("Total {:d} itemsets mined".format(len(itemsets)))
     return itemsets
 
 

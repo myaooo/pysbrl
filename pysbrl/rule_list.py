@@ -128,7 +128,7 @@ class BayesianRuleList(object):
     """
 
     def __init__(self, min_rule_len=1, max_rule_len=2, min_support=0.01, lambda_=50, eta=1, iters=30000,
-                 n_chains=30, alpha=1, fim_method='eclat', feature_names=None, category_names=None):
+                 n_chains=30, alpha=1, fim_method='eclat', feature_names=None, category_names=None, seed=None):
         # type: (int, int, float, float, float, int, int, int) -> None
         # parameters used for the SBRL algorithm
         self.min_rule_len = min_rule_len
@@ -140,6 +140,7 @@ class BayesianRuleList(object):
         self.iters = iters
         self.n_chains = n_chains
         self.fim_method = fim_method
+        self.seed = seed
 
         # values useful for printing
         self.feature_names = feature_names
@@ -152,7 +153,7 @@ class BayesianRuleList(object):
         # Raw results from C function
         self._rule_ids = None
         self._rule_outputs = None
-        self._rule_strings = None
+        self._rule_pool = None
 
         # model parameters
         self._rule_list = []  # type: List[Rule]
@@ -177,7 +178,7 @@ class BayesianRuleList(object):
 
     def fit(self, x, y, verbose=0):
         """
-        :param x: 2D np.ndarray (n_instances, n_features) could be continuous
+        :param x: 2D np.ndarray (n_instances, n_features) should be categorical data, must be of type int
         :param y: 1D np.ndarray (n_instances, ) labels
         :param verbose:
         :return:
@@ -188,15 +189,15 @@ class BayesianRuleList(object):
         label_file = tempfile.NamedTemporaryFile("w")
 
         start = time.time()
-        categorical2pysbrl_data(x, y, data_file.name, label_file.name, supp=self.min_support,
-                                zmin=self.min_rule_len, zmax=self.max_rule_len, method=self.fim_method)
+        raw_rules = categorical2pysbrl_data(x, y, data_file.name, label_file.name, supp=self.min_support,
+                                            zmin=self.min_rule_len, zmax=self.max_rule_len, method=self.fim_method)
         cat_time = time.time() - start
         if verbose:
             print("time for rule mining: %.4fs" % cat_time)
         n_labels = int(np.max(y)) + 1
         start = time.time()
         _model = train_sbrl(data_file.name, label_file.name, self.lambda_, eta=self.eta,
-                            max_iters=self.iters, n_chains=self.n_chains,
+                            max_iters=self.iters, n_chains=self.n_chains, seed=self.seed,
                             alpha=[self.alpha for _ in range(n_labels)])
         train_time = time.time() - start
         if verbose:
@@ -205,52 +206,47 @@ class BayesianRuleList(object):
         # update model parameters
         self._n_classes = n_labels
         self._n_features = x.shape[1]
-        self._rule_ids = _model[0]
-        self._rule_outputs = _model[1]
-        self._rule_strings = _model[2]
 
         # convert the raw parameters to rules
-        self.from_raw(*_model)
+        self.from_raw(_model[0], _model[1], raw_rules)
+        self._supports = self.compute_support(x, y)
 
         # Close the temp files
         data_file.close()
         label_file.close()
 
-    def from_raw(self, rule_ids, outputs, rule_strings):
+    def from_raw(self, rule_ids, outputs, raw_rules):
         """
         A helper function that converts the results returned from C function
         :param rule_ids:
         :param outputs:
-        :param rule_strings:
+        :param raw_rules:
         :return:
         """
+        self._rule_pool = [([], [])] + raw_rules
         self._rule_list = []
         for i, idx in enumerate(rule_ids):
-            _rule_name = rule_strings[idx]
-            self._rule_list.append(rule_str2rule(_rule_name, outputs[i]))
-
-    def post_process(self, x, y):
-        """
-        Post process function that clean the extracted rules
-        :return:
-        """
-        support_summary = self.compute_support(x, y)
-        for rule, support in zip(self._rule_list, support_summary):
-            rule.support = support
+            rule = Rule([Clause(f, c) for f, c in self._rule_pool[idx]], outputs[i])
+            self._rule_list.append(rule)
+            # self._rule_list.append(rule_str2rule(_rule_name, outputs[i]))
+        self._rule_ids = rule_ids
+        self._rule_outputs = outputs
 
     def compute_support(self, x, y):
         # type: (np.ndarray, np.ndarray) -> np.ndarray
         """
-        Calculate the support for the rules
-        :param x:
-        :param y:
-        :return:
+        Calculate the support for the rules.
+        The support of each rule is a list of `n_classes` integers: [l1, l2, ...].
+        Each integer represents the number of data of label i that is caught by this rule
+        :param x: 2D np.ndarray (n_instances, n_features) should be categorical data, must be of type int
+        :param y: 1D np.ndarray (n_instances, ) labels
+        :return: a np.ndarray of shape (n_rules, n_classes)
         """
-        supports = self.decision_support(x)
-        if np.sum(supports.astype(np.int)) != x.shape[0]:
+        caught_matrix = self.caught_matrix(x)
+        if np.sum(caught_matrix.astype(np.int)) != x.shape[0]:
             raise RuntimeError("The sum of the support should equal to the number of instances!")
         support_summary = np.zeros((self.n_rules, self.n_classes), dtype=np.int)
-        for i, support in enumerate(supports):
+        for i, support in enumerate(caught_matrix):
             support_labels = y[support]
             unique_labels, unique_counts = np.unique(support_labels, return_counts=True)
             if len(unique_labels) > 0 and np.max(unique_labels) > support_summary.shape[1]:
@@ -260,13 +256,14 @@ class BayesianRuleList(object):
             support_summary[i, unique_labels] = unique_counts
         return support_summary
 
-    def decision_support(self, x):
+    def caught_matrix(self, x):
         # type: (np.ndarray) -> np.ndarray
         """
-        compute the decision support of the rule list on x
-        :param x: x should be already transformed
+        compute the caught matrix of x
+        Each rule has an array of bools, showing whether each instances is caught by this rule
+        :param x: 2D np.ndarray (n_instances, n_features) should be categorical data, must be of type int
         :return:
-            return a list of n_rules np.ndarray of shape [n_instances,] of type bool
+            a bool np.ndarray of shape (n_rules, n_instances)
         """
         un_satisfied = np.ones((x.shape[0],), dtype=np.bool)
         supports = np.zeros((self.n_rules, x.shape[0]), dtype=np.bool)

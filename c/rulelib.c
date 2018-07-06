@@ -300,6 +300,7 @@ create_random_ruleset(int size,
 
 /*
  * Given a rule set, pick a random rule (not already in the set).
+ * TODO: use set to facilitate faster pick
  */
 int
 pick_random_rule(int n_rules, const rulelist_t *rs) {
@@ -339,13 +340,16 @@ ruleset_swap(rulelist_t *rs, int i, int j, rule_data_t *rules) {
 
     tmp_vec = bit_vector_init((bit_size_t) rs->n_samples);
 
+    /* j.captures = j.captures | (i.captures & j.tt) */
     /* tmp_vec =  i.captures & j.tt */
-    bit_vector_and_safe(tmp_vec, rs->rules[i].captures, rules[rs->rules[j].rule_id].truthtable);
+//    bit_vector_and_safe(tmp_vec, rs->rules[i].captures, rules[rs->rules[j].rule_id].truthtable);
     /* j.captures = j.captures | tmp_vec */
-    bit_vector_or_safe(rs->rules[j].captures, rs->rules[j].captures, tmp_vec);
+//    bit_vector_or_safe(rs->rules[j].captures, rs->rules[j].captures, tmp_vec);
+    bit_vector_or_eq_and(rs->rules[j].captures,
+                         rs->rules[i].captures, rules[rs->rules[j].rule_id].truthtable);
 
     /* i.captures = i.captures & ~j.captures */
-    bit_vector_and_not_safe(rs->rules[i].captures, rs->rules[i].captures, rs->rules[j].captures);
+    bit_vector_and_eq_not(rs->rules[i].captures, rs->rules[j].captures);
 
     /* Now swap the two entries */
     re = rs->rules[i];
@@ -382,7 +386,7 @@ ruleset_swap_any(rulelist_t *rs, int i, int j, rule_data_t *rules) {
     caught = bit_vector_init((bit_size_t) rs->n_samples);
 
     for (k = i; k <= j; k++)
-        bit_vector_or_safe(caught, caught, rs->rules[k].captures);
+        bit_vector_or_eq(caught, rs->rules[k].captures);
     cnt = bit_vector_n_ones(caught);
     /* Now swap the rules in the ruleset. */
     temp = rs->rules[i].rule_id;
@@ -395,11 +399,16 @@ ruleset_swap_any(rulelist_t *rs, int i, int j, rule_data_t *rules) {
          * Compute the items captured by rule k by anding the caught
          * vector with the truthtable of the kth rule.
          */
-        bit_vector_and_safe(rs->rules[k].captures, caught, rules[rs->rules[k].rule_id].truthtable);
+        // k.captures = caught & k.tt
+        bit_vector_and(rs->rules[k].captures, caught, rules[rs->rules[k].rule_id].truthtable);
         cnt_check += bit_vector_n_ones(rs->rules[k].captures);
 
         /* Now remove the caught items from the caught vector. */
-        bit_vector_and_not_safe(caught, caught, rs->rules[k].captures);
+        // caught = caught & (~captures) (1, 1) => 0; (1, 0) => 1; (0, 0) => 0; (0, 1) => 0 (X)
+        // since for all captures = 1, caught must be 1, we can use xor to speed up the calculation
+        // That is: caught ^= k.captures
+//        bit_vector_and_not_safe(caught, caught, rs->rules[k].captures);
+        bit_vector_xor_eq(caught, rs->rules[k].captures);
 
     }
     assert(bit_vector_n_ones(caught) == 0);
@@ -407,25 +416,6 @@ ruleset_swap_any(rulelist_t *rs, int i, int j, rule_data_t *rules) {
 
     bit_vector_free(caught);
 }
-
-
-///*
-// * Find first set bit starting at position start_pos.
-// */
-//int
-//rule_ff1(VECTOR v, int start_pos, int len) {
-//#ifdef GMP
-//    (void)len;
-//    return mpz_scan1(v, start_pos);
-//#else
-//    int i;
-//    for (i = start_pos; i < len; i++) {
-//        if (vector_isset(v, i))
-//            return i;
-//    }
-//    return -1;
-//#endif
-//}
 
 void
 ruleset_print(rulelist_t *rs, rule_data_t *rules, int detail) {

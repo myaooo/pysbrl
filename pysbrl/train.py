@@ -2,10 +2,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import os
+
 from pysbrl.pysbrl import train_sbrl as _train
 
 
-def train_sbrl(data_file, label_file, lambda_=20, eta=2, max_iters=300000, n_chains=20, alpha=1, verbose=0):
+def train_sbrl(data_file, label_file, lambda_=20, eta=2, max_iters=300000, n_chains=20, alpha=1, seed=None, verbose=0):
     """
     The basic training function of the scalable bayesian rule list.
     Users are suggested to use SBRL instead of this function.
@@ -34,5 +36,10 @@ def train_sbrl(data_file, label_file, lambda_=20, eta=2, max_iters=300000, n_cha
         alphas = alpha
     else:
         raise ValueError('the argument alpha can only be int or List[int]')
-    return _train(data_file, label_file, lambda_, eta, max_iters, n_chains, alphas, verbose)
-
+    if seed is None:
+        seed = -1
+    if not os.path.isfile(data_file):
+        raise FileNotFoundError('data file %s does not exists!' % data_file)
+    if not os.path.isfile(label_file):
+        raise FileNotFoundError('label file %s does not exists!' % label_file)
+    return _train(data_file, label_file, lambda_, eta, max_iters, n_chains, alphas, seed, verbose)

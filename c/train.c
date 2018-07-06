@@ -85,7 +85,7 @@ static permute_t *rule_permutation;
 static int permute_ndx;
 
 double compute_log_posterior(const rulelist_t *, data_t *, params_t *, int, double *);
-int gen_poission(double);
+//int gen_poission(double);
 gsl_matrix *get_theta(rulelist_t *, rule_data_t *, params_t *);
 //void gsl_ran_poisson_test();
 void init_gsl_rand_gen(long seed);
@@ -109,16 +109,16 @@ mcmc_accepts(double new_log_post, double old_log_post,
         (new_log_post - old_log_post + log(*extra)));
 }
 
-int
-sa_accepts(double new_log_post, double old_log_post,
-    double prefix_bound, double max_log_post, const double *extra)
-{
-    /* Extra = tk */
-    return (prefix_bound > max_log_post &&
-        (new_log_post > old_log_post ||
-         (log(gsl_rng_uniform(RAND_GSL)) <
-         (new_log_post - old_log_post) / *extra)));
-}
+//int
+//sa_accepts(double new_log_post, double old_log_post,
+//    double prefix_bound, double max_log_post, const double *extra)
+//{
+//    /* Extra = tk */
+//    return (prefix_bound > max_log_post &&
+//        (new_log_post > old_log_post ||
+//         (log(gsl_rng_uniform(RAND_GSL)) <
+//         (new_log_post - old_log_post) / *extra)));
+//}
 
 
 /*
@@ -537,77 +537,77 @@ err:
     return (NULL);
 }
 
-rulelist_t *
-run_simulated_annealing(data_t *train_data, params_t *params, int init_size)
-{
-    rulelist_t *rs;
-    double jump_prob;
-    int dummy, i, j, k, iter, iters_per_step, *rs_idarray = NULL, len;
-    double log_post_rs, max_log_posterior, prefix_bound = 0.0;
-
-    iters_per_step = 200;
-
-    /* Initialize the ruleset. */
-    rs = create_random_ruleset(init_size, train_data->n_samples, train_data->n_rules, train_data->rules);
-    if (rs == NULL)
-        return (NULL);
-
-    log_post_rs = compute_log_posterior(rs, train_data, params, -1, &prefix_bound);
-    if (ruleset_backup(rs, &rs_idarray) != 0)
-        goto err;
-    max_log_posterior = log_post_rs;
-    len = rs->n_rules;
-
-//    printf("Initial ruleset: \n");
-//    ruleset_print(rs, train_data->rules, 0);
-
-    /* Pre-compute the cooling schedule. */
-    double T[100000], tmp[50];
-    int ntimepoints = 0;
-
-    tmp[0] = 1;
-    for (i = 1; i < 28; i++) {
-        tmp[i] = tmp[i - 1] + exp(0.25 * (i + 1));
-        for (j = (int)tmp[i - 1]; j < (int)tmp[i]; j++)
-            T[ntimepoints++] = 1.0 / (i + 1);
-    }
-
-    DEBUG_PRINT("iters_per_step = %d, #timepoints = %d\n", iters_per_step, ntimepoints);
-
-    for (k = 0; k < ntimepoints; k++) {
-        double tk = T[k];
-        for (iter = 0; iter < iters_per_step; iter++) {
-                if ((rs = propose(rs, train_data, &jump_prob,
-                &log_post_rs, max_log_posterior, &dummy, &tk,
-                params, sa_accepts)) == NULL)
-                    goto err;
-
-            if (log_post_rs > max_log_posterior) {
-                if (ruleset_backup(rs, &rs_idarray) != 0)
-                    goto err;
-                max_log_posterior = log_post_rs;
-                len = rs->n_rules;
-            }
-        }
-    }
-    /* Regenerate the best rule list. */
-    ruleset_destroy(rs);
-    rs = ruleset_init(len, train_data->n_samples, rs_idarray, train_data->rules);
-    free(rs_idarray);
-    DEBUG_PRINT("\n\n/*----The best rule list is: */\n");
-    DEBUG_PRINT("max_log_posterior = %6f\n\n", max_log_posterior);
-    DEBUG_PRINT("max_log_posterior = %6f\n\n",
-        compute_log_posterior(rs, train_data, params, -1, &prefix_bound));
-    DEBUG_RUN(ruleset_print(rs, train_data->rules, 0));
-
-    return (rs);
-err:
-    if (rs != NULL)
-        ruleset_destroy(rs);
-    if (rs_idarray != NULL)
-        free(rs_idarray);
-    return (NULL);
-}
+//rulelist_t *
+//run_simulated_annealing(data_t *train_data, params_t *params, int init_size)
+//{
+//    rulelist_t *rs;
+//    double jump_prob;
+//    int dummy, i, j, k, iter, iters_per_step, *rs_idarray = NULL, len;
+//    double log_post_rs, max_log_posterior, prefix_bound = 0.0;
+//
+//    iters_per_step = 200;
+//
+//    /* Initialize the ruleset. */
+//    rs = create_random_ruleset(init_size, train_data->n_samples, train_data->n_rules, train_data->rules);
+//    if (rs == NULL)
+//        return (NULL);
+//
+//    log_post_rs = compute_log_posterior(rs, train_data, params, -1, &prefix_bound);
+//    if (ruleset_backup(rs, &rs_idarray) != 0)
+//        goto err;
+//    max_log_posterior = log_post_rs;
+//    len = rs->n_rules;
+//
+////    printf("Initial ruleset: \n");
+////    ruleset_print(rs, train_data->rules, 0);
+//
+//    /* Pre-compute the cooling schedule. */
+//    double T[100000], tmp[50];
+//    int ntimepoints = 0;
+//
+//    tmp[0] = 1;
+//    for (i = 1; i < 28; i++) {
+//        tmp[i] = tmp[i - 1] + exp(0.25 * (i + 1));
+//        for (j = (int)tmp[i - 1]; j < (int)tmp[i]; j++)
+//            T[ntimepoints++] = 1.0 / (i + 1);
+//    }
+//
+//    DEBUG_PRINT("iters_per_step = %d, #timepoints = %d\n", iters_per_step, ntimepoints);
+//
+//    for (k = 0; k < ntimepoints; k++) {
+//        double tk = T[k];
+//        for (iter = 0; iter < iters_per_step; iter++) {
+//                if ((rs = propose(rs, train_data, &jump_prob,
+//                &log_post_rs, max_log_posterior, &dummy, &tk,
+//                params, sa_accepts)) == NULL)
+//                    goto err;
+//
+//            if (log_post_rs > max_log_posterior) {
+//                if (ruleset_backup(rs, &rs_idarray) != 0)
+//                    goto err;
+//                max_log_posterior = log_post_rs;
+//                len = rs->n_rules;
+//            }
+//        }
+//    }
+//    /* Regenerate the best rule list. */
+//    ruleset_destroy(rs);
+//    rs = ruleset_init(len, train_data->n_samples, rs_idarray, train_data->rules);
+//    free(rs_idarray);
+//    DEBUG_PRINT("\n\n/*----The best rule list is: */\n");
+//    DEBUG_PRINT("max_log_posterior = %6f\n\n", max_log_posterior);
+//    DEBUG_PRINT("max_log_posterior = %6f\n\n",
+//        compute_log_posterior(rs, train_data, params, -1, &prefix_bound));
+//    DEBUG_RUN(ruleset_print(rs, train_data->rules, 0));
+//
+//    return (rs);
+//err:
+//    if (rs != NULL)
+//        ruleset_destroy(rs);
+//    if (rs_idarray != NULL)
+//        free(rs_idarray);
+//    return (NULL);
+//}
 
 double
 compute_log_posterior(const rulelist_t *rs, data_t * train_data,
@@ -802,53 +802,82 @@ init_gsl_rand_gen(long seed)
 
 }
 
+
+#define MAX_TRIES 10
+
+/*
+ * Given a rule set, pick a random rule (not already in the set).
+ * TODO: use set to facilitate faster pick
+ */
 int
-gen_poisson(double mu)
-{
-    return ((int)gsl_ran_poisson(RAND_GSL, mu));
-}
+pick_random_rule(int n_rules, const rulelist_t *rs) {
+    int cnt, j, new_rule = 1;
 
-double
-gen_poission_pdf(int k, double mu)
-{
-    return (gsl_ran_poisson_pdf(k, mu));
-}
+    cnt = 0;
+    pickrule:
+    if (cnt < MAX_TRIES)
+        new_rule = (int) gsl_rng_uniform_int(RAND_GSL, (unsigned) (n_rules -2)) + 1;
+//        new_rule = RANDOM_RANGE(1, (n_rules - 1));
+    else
+        new_rule = 1 + (new_rule % (n_rules - 2));
 
-double
-gen_gamma_pdf (double x, double a, double b)
-{
-    return (gsl_ran_gamma_pdf(x, a, b));
-}
-
-void
-gsl_ran_poisson_test()
-{
-    int i, j;
-    unsigned int k1 = gsl_ran_poisson(RAND_GSL, 5);
-    unsigned int k2 = gsl_ran_poisson(RAND_GSL, 5);
-
-    printf("k1 = %u , k2 = %u\n", k1, k2);
-
-    //number of experiments
-    const int nrolls = 10000;
-
-    //maximum number of stars to distribute
-    const int nstars = 100;
-
-    int p[10] = {};
-    for (i = 0; i < nrolls; ++i) {
-        unsigned int number = gsl_ran_poisson(RAND_GSL, 4.1);
-
-        if (number < 10)
-            ++p[number];
+    for (j = 0; j < rs->n_rules; j++) {
+        if ((int) rs->rules[j].rule_id == new_rule) {
+            cnt++;
+            goto pickrule;
+        }
     }
-
-    printf("poisson_distribution (mean=4.1):\n");
-
-    for (i = 0; i < 10; ++i) {
-        printf("%d, : ", i);
-        for (j = 0; j < p[i] * nstars / nrolls; j++)
-            printf("*");
-        printf("\n");
-    }
+    return (new_rule);
 }
+
+
+//int
+//gen_poisson(double mu)
+//{
+//    return ((int)gsl_ran_poisson(RAND_GSL, mu));
+//}
+//
+//double
+//gen_poission_pdf(int k, double mu)
+//{
+//    return (gsl_ran_poisson_pdf(k, mu));
+//}
+//
+//double
+//gen_gamma_pdf (double x, double a, double b)
+//{
+//    return (gsl_ran_gamma_pdf(x, a, b));
+//}
+//
+//void
+//gsl_ran_poisson_test()
+//{
+//    int i, j;
+//    unsigned int k1 = gsl_ran_poisson(RAND_GSL, 5);
+//    unsigned int k2 = gsl_ran_poisson(RAND_GSL, 5);
+//
+//    printf("k1 = %u , k2 = %u\n", k1, k2);
+//
+//    //number of experiments
+//    const int nrolls = 10000;
+//
+//    //maximum number of stars to distribute
+//    const int nstars = 100;
+//
+//    int p[10] = {};
+//    for (i = 0; i < nrolls; ++i) {
+//        unsigned int number = gsl_ran_poisson(RAND_GSL, 4.1);
+//
+//        if (number < 10)
+//            ++p[number];
+//    }
+//
+//    printf("poisson_distribution (mean=4.1):\n");
+//
+//    for (i = 0; i < 10; ++i) {
+//        printf("%d, : ", i);
+//        for (j = 0; j < p[i] * nstars / nrolls; j++)
+//            printf("*");
+//        printf("\n");
+//    }
+//}

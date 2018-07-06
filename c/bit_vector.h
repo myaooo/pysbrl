@@ -4,7 +4,7 @@
 
 #ifndef SBRL_BIT_VECTOR_H
 #define SBRL_BIT_VECTOR_H
-
+#include <stdint.h>
 /*
  * Define types for bit vectors.
  */
@@ -12,9 +12,8 @@ typedef uint64_t word_t;
 typedef uint32_t bit_size_t;
 
 //typedef word_t *VECTOR;
-#define VECTOR_ASSIGN(dest, src) dest = src
 
-#define BITS_PER_WORD 64
+#define BITS_PER_WORD (sizeof(word_t) * 8)
 #define WORD_MAX (~(word_t)0)
 
 typedef struct bit_vector {

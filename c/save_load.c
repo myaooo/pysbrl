@@ -33,49 +33,49 @@ load_data(const char *data_file, const char *label_file, data_t *data) {
     return (0);
 }
 
-int
-rules_init_from_data(int n_items, int n_samples, char **satisfied,
-                     rule_data_t **rules_ret, int add_default_rule) {
-    int n_rules;
-    int i, j, ret, rule_idx;
-    rule_data_t *rules = NULL;
-
-    add_default_rule = add_default_rule ? 1 : 0;
-    n_rules = n_items + add_default_rule;
-    rules = (rule_data_t *) malloc(n_rules * sizeof(rule_data_t));
-
-    if (add_default_rule) {
-        rules[0].truthtable = bit_vector_init((bit_size_t) n_samples);
-        if (rules[0].truthtable == NULL)
-            goto err;
-        bit_vector_flip_all(rules[0].truthtable);
-    }
-
-    /*
-     * Leave a space for the 0th (default) rule, which we'll add at
-     * the end.
-     */
-    for (j = 0; j < n_samples; ++j) {
-        rule_idx = j + add_default_rule;
-
-        if ((rules[rule_idx].truthtable = bit_vector_from_bytes(satisfied[j], (bit_size_t) n_samples)) == NULL)
-            goto err;
-    }
-
-    *rules_ret = rules;
-
-    return (0);
-
-    err:
-    ret = errno;
-
-    /* Reclaim space. */
-    for (i = 1; i < n_items; i++) {
-        bit_vector_free(rules[i].truthtable);
-    }
-    free(rules);
-    return (ret);
-}
+//int
+//rules_init_from_data(int n_items, int n_samples, char **satisfied,
+//                     rule_data_t **rules_ret, int add_default_rule) {
+//    int n_rules;
+//    int i, j, ret, rule_idx;
+//    rule_data_t *rules = NULL;
+//
+//    add_default_rule = add_default_rule ? 1 : 0;
+//    n_rules = n_items + add_default_rule;
+//    rules = (rule_data_t *) malloc(n_rules * sizeof(rule_data_t));
+//
+//    if (add_default_rule) {
+//        rules[0].truthtable = bit_vector_init((bit_size_t) n_samples);
+//        if (rules[0].truthtable == NULL)
+//            goto err;
+//        bit_vector_flip_all(rules[0].truthtable);
+//    }
+//
+//    /*
+//     * Leave a space for the 0th (default) rule, which we'll add at
+//     * the end.
+//     */
+//    for (j = 0; j < n_samples; ++j) {
+//        rule_idx = j + add_default_rule;
+//
+//        if ((rules[rule_idx].truthtable = bit_vector_from_bytes(satisfied[j], (bit_size_t) n_samples)) == NULL)
+//            goto err;
+//    }
+//
+//    *rules_ret = rules;
+//
+//    return (0);
+//
+//    err:
+//    ret = errno;
+//
+//    /* Reclaim space. */
+//    for (i = 1; i < n_items; i++) {
+//        bit_vector_free(rules[i].truthtable);
+//    }
+//    free(rules);
+//    return (ret);
+//}
 
 
 int
@@ -86,7 +86,7 @@ rules_init_from_stream(FILE *fi, int *n_rules, int *n_samples,
     int i, ret;
     rule_data_t *rules = NULL;
     size_t linelen, rulelen;
-    ssize_t len;
+    long len;
 
     /*
      * Leave a space for the 0th (default) rule, which we'll add at
@@ -97,7 +97,7 @@ rules_init_from_stream(FILE *fi, int *n_rules, int *n_samples,
     linelen = 0;
 
     // Read the first two lines
-    if (getline(&line, &linelen, fi) > 0) {
+    if (_getline(&line, &linelen, fi) > 0) {
         if (strncmp(line, "n_items:", 8) == 0) {
             *n_rules = (int) strtol(line + 8, &tmp, 10);
         } else {
@@ -108,7 +108,7 @@ rules_init_from_stream(FILE *fi, int *n_rules, int *n_samples,
         fprintf(stderr, "Error: data file mal-format! The first line should be n_items: xxx\n");
         goto err;
     }
-    if (getline(&line, &linelen, fi) > 0) {
+    if (_getline(&line, &linelen, fi) > 0) {
         if (strncmp(line, "n_samples:", 10) == 0) {
             *n_samples = (int) strtol(line + 10, &tmp, 10);
         } else {
@@ -123,11 +123,11 @@ rules_init_from_stream(FILE *fi, int *n_rules, int *n_samples,
     rules = malloc(*n_rules * sizeof(rule_data_t));
 
     for (i = 0; i < *n_rules; i++) {
-        if ((len = getline(&line, &linelen, fi)) > 0) {
+        if ((len = _getline(&line, &linelen, fi)) > 0) {
 
             /* Get the rule string; line will contain the bits. */
             features = line;
-            if ((rulestr = strsep(&features, " ")) == NULL)
+            if ((rulestr = _strsep(&features, " ")) == NULL)
                 goto err;
             if ((rules[rule_cnt].feature_str = _strdup(rulestr)) == NULL)
                 goto err;

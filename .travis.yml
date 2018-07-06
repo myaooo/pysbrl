@@ -1,35 +1,15 @@
-addons:
-  apt:
-    packages:
-      - swig
-
-notifications:
-  email: false
-
-deploy:
-  provider: pypi
-  user: $PYPI_USER
-  password: $PYPI_PASSWORD
-  skip_cleanup: true
-  on:
-    tags: true
+language: python
 
 matrix:
   include:
     - sudo: required
       services:
         - docker
-      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
-    - sudo: required
-      services:
-        - docker
-      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
-           PRE_CMD=linux32
-
-install:
-  - scripts/compile_swig.sh
-  - docker pull $DOCKER_IMAGE
+      env: PIP=pip
+    - os: osx
+      language: generic
+      env: PIP=pip2
 
 script:
-  - docker run -v `pwd`:/code $DOCKER_IMAGE /code/scripts/docker_build.sh
-  - ls wheelhouse/
+  - $PIP install cibuildwheel==0.9.2
+  - cibuildwheel --output-dir wheelhouse

@@ -108,9 +108,3 @@ int train_sbrl(const char *data_file, const char *label_file,
 
     return 0;
 }
-
-
-int sbrl_predict() {
-
-    return 0;
-}

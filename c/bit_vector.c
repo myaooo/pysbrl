@@ -2,9 +2,9 @@
 // Created by Ming Yao on 7/5/18.
 //
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <printf.h>
 #include <string.h>
 #include "bit_vector.h"
 
@@ -36,7 +36,8 @@ static const uint8_t byte_ones[256] = {
 #define MIN(a, b)  (((a) <= (b)) ? (a) : (b))
 #define MAX(a, b)  (((a) >= (b)) ? (a) : (b))
 #define bits_in_top_word(nbits) ((nbits) ? bitvec_idx((nbits) - 1) + 1 : 0)
-#define bitmask64(nbits) ((nbits) ? (~(uint64_t)0 >> (64 - (nbits))) : ((uint64_t)0))
+//#define bitmask64(nbits) ((nbits) ? (~(uint64_t)0 >> (64 - (nbits))) : ((uint64_t)0))
+#define bitmask(nbits) ((nbits) ? (~(word_t)0 >> (BITS_PER_WORD - (nbits))) : ((word_t)0))
 
 //
 // Helper Functions
@@ -46,7 +47,7 @@ static inline void _mask_top_word(bit_vector_t *bitvec) {
     // Mask top word
     bit_size_t num_of_words = MAX(1, bitvec->n_words);
     bit_size_t bits_active = bits_in_top_word(bitvec->n_bits);
-    bitvec->words[num_of_words - 1] &= bitmask64(bits_active);
+    bitvec->words[num_of_words - 1] &= bitmask(bits_active);
 }
 
 //

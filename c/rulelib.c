@@ -21,15 +21,14 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#define _GNU_SOURCE
+//#define _GNU_SOURCE
 
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <jmorecfg.h>
+#include <gsl/gsl_rng.h>
 #include "rule.h"
 #include "bit_vector.h"
 #include "utils.h"
@@ -296,33 +295,6 @@ create_random_ruleset(int size,
     return (ret);
 }
 
-#define MAX_TRIES 10
-
-/*
- * Given a rule set, pick a random rule (not already in the set).
- * TODO: use set to facilitate faster pick
- */
-int
-pick_random_rule(int n_rules, const rulelist_t *rs) {
-    int cnt, j, new_rule = 1;
-
-    cnt = 0;
-pickrule:
-    if (cnt < MAX_TRIES)
-        new_rule = RANDOM_RANGE(1, (n_rules - 1));
-    else
-        new_rule = 1 + (new_rule % (n_rules - 2));
-
-    for (j = 0; j < rs->n_rules; j++) {
-        if ((int) rs->rules[j].rule_id == new_rule) {
-            cnt++;
-            goto pickrule;
-        }
-    }
-    return (new_rule);
-}
-
-
 /*
  * Swap rules i and j, where i + 1 = j.
  *	j.captures = j.captures | (i.captures & j.tt)
@@ -412,7 +384,8 @@ ruleset_swap_any(rulelist_t *rs, int i, int j, rule_data_t *rules) {
 
     }
     assert(bit_vector_n_ones(caught) == 0);
-    assert(cnt == cnt_check);
+    if (cnt != cnt_check)
+        assert(cnt == cnt_check);
 
     bit_vector_free(caught);
 }
@@ -451,8 +424,8 @@ rule_print(rule_data_t *rules, int ndx, int detail) {
 }
 
 
-void
-rule_print_all(rule_data_t *rules, int n_rules) {
-    for (int i = 0; i < n_rules; i++)
-        rule_print(rules, i, 1);
-}
+//void
+//rule_print_all(rule_data_t *rules, int n_rules) {
+//    for (int i = 0; i < n_rules; i++)
+//        rule_print(rules, i, 1);
+//}

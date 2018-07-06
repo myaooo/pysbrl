@@ -59,7 +59,7 @@
  */
 
 #define RANDOM_RANGE(lo, hi) \
-    (unsigned)((lo) + (unsigned)((random() / (float)RAND_MAX) * ((hi) - (lo) + 1)))
+    (unsigned)((lo) + (unsigned)((rand() / (float)RAND_MAX) * ((hi) - (lo) + 1)))
 
 /*
  * We have slightly different structures to represent the original rules 
@@ -140,17 +140,17 @@ rulelist_t * create_random_ruleset(int, int, int, rule_data_t *);
 
 int load_data(const char *, const char *, data_t *);
 int rules_init_from_file(const char *, int *, int *, rule_data_t **,  int);
-int rules_init_from_data(int, int, char **, rule_data_t **, int);
+//int rules_init_from_data(int, int, char **, rule_data_t **, int);
 void rules_free(rule_data_t *, int);
 
 void rule_print(rule_data_t *, int, int);
-void rule_print_all(rule_data_t *, int);
+//void rule_print_all(rule_data_t *, int);
 
 /* Functions for the Scalable Baysian Rule Lists */
 gsl_matrix *predict(pred_model_t *, rule_data_t *labels, params_t *);
 int ruleset_proposal(rulelist_t *, int, int *, int *, char *, double *);
 rulelist_t *run_mcmc(data_t *, params_t *, double);
-rulelist_t *run_simulated_annealing(data_t *, params_t *, int);
+//rulelist_t *run_simulated_annealing(data_t *, params_t *, int);
 pred_model_t *train(data_t *, params_t *, long);
 
 #endif //SBRL_RULE_H

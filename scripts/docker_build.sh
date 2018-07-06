@@ -10,6 +10,7 @@ for PYBIN in /opt/python/*/bin; do
         continue
     fi
     ${PYBIN}/pip install -r /code/dev-requirements.txt
+    ${PYBIN}/pip install -r /code/test-requirements.txt
     ${PYBIN}/pip wheel /code/ -w wheelhouse/
 done
 

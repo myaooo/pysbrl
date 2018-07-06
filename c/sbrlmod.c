@@ -50,8 +50,8 @@
 #define NLABELS 2
 
 
-pred_model_t *read_model(const char *, int, rule_t *, int);
-void run_experiment(int, int, int, int, rule_t *);
+pred_model_t *read_model(const char *, rule_data_t *, int);
+void run_experiment(int, int, int, int, rule_data_t *);
 gsl_matrix *test_model(const char *, const char *, pred_model_t *, params_t *);
 int write_model(const char *, pred_model_t *);
 
@@ -76,19 +76,17 @@ main (int argc, char *argv[])
     extern char *optarg;
     extern int optind, optopt, opterr;
     int ret, size = DEFAULT_RULESET_SIZE;
-    int i, iters, nrules, nsamples, nclasses, tnum, alpha;
+    int i, iters, tnum, alpha;
     char ch, *modelfile;
     data_t train_data;
     gsl_matrix *p;
     pred_model_t *model;
-    rule_t *rules, *labels;
     struct timeval tv_acc, tv_start, tv_end;
     params_t params = {9.0, 2.0, 100, 11, 2, NULL};
 
     debug = 0;
     alpha = 1;
     p = NULL;
-    rules = labels = NULL;
     iters = params.iters;
     tnum = TEST_TEST;
     modelfile = NULL;
@@ -96,7 +94,7 @@ main (int argc, char *argv[])
     while ((ch = getopt(argc, argv, "c:d:e:i:l:m:s:S:t:a:")) != EOF)
         switch (ch) {
         case 'c':
-            params.nchain = atoi(optarg);
+            params.n_chains = atoi(optarg);
             break;
         case 'd':
             debug = atoi(optarg);
@@ -144,21 +142,22 @@ main (int argc, char *argv[])
      */
     INIT_TIME(tv_acc);
     START_TIME(tv_start);
-    if ((ret = load_data(argv[0],
-        argv[1], &nsamples, &nrules, &nclasses, &rules, &labels)) != 0)
-            return (ret);
-    alpha_init(nclasses, alpha, &params);
+    if ((ret = load_data(argv[0], argv[1], &train_data)) != 0) {
+        return (ret);
+    }
+    params.alpha = malloc(train_data.n_classes * sizeof(int));
+    for (i = 0; i < train_data.n_classes; i++) {
+        params.alpha[i] = alpha;
+    }
+    params.n_classes = train_data.n_classes;
     END_TIME(tv_start, tv_end, tv_acc);
-    REPORT_TIME("Initialize time", "per rule", tv_end, nrules);
+    REPORT_TIME("Initialize time", "per rule", tv_end, train_data.n_rules);
     
     if (debug)
-        printf("%d rules %d samples\n\n", nrules, nsamples);
-
-    // if (debug > 100)
-        // rule_print_all(rules, nrules, nsamples);
+        printf("%d rules %d samples\n\n", train_data.n_rules, train_data.n_samples);
     
     if (debug > 100) {
-        printf("Labels for %d samples\n\n", nsamples);
+        printf("Labels for %d samples\n\n", train_data.n_samples);
         // rule_print_all(labels, nsamples, nsamples);
        } 
     /*
@@ -170,17 +169,17 @@ main (int argc, char *argv[])
      */
     switch(tnum) {
         case 1:
-            run_experiment(iters, size, nsamples, nrules,  rules);
+            run_experiment(iters, size, train_data.n_samples, train_data.n_rules, train_data.rules);
             break;
         case 2:
         case 3:
-            train_data.rules = rules;
-            train_data.labels = labels;
-            train_data.nrules = nrules;
-            train_data.nsamples = nsamples;
+//            train_data.rules = rules;
+//            train_data.labels = labels;
+//            train_data.n_rules = nrules;
+//            train_data.n_samples = nsamples;
             INIT_TIME(tv_acc);
             START_TIME(tv_start);
-            model = train(&train_data, 0, 0, &params);
+            model = train(&train_data, &params, 0);
             END_TIME(tv_start, tv_end, tv_acc);
             REPORT_TIME("Time to train", "", tv_end, 1);
 
@@ -190,8 +189,8 @@ main (int argc, char *argv[])
             }
 
             printf("\nThe best rulelist for %d MCMC chains is: ",
-                params.nchain); 
-            ruleset_print(model->rs, rules, 0);
+                params.n_chains);
+            ruleset_print(model->rs, train_data.rules, 0);
             for (i = 0; i < model->rs->n_rules; i++) {
                 gsl_vector_view theta_i = gsl_matrix_row(model->theta, i);
                 double max_theta = gsl_vector_max(&(theta_i.vector));
@@ -200,12 +199,12 @@ main (int argc, char *argv[])
                     max_theta);
             }
 
-            printf("Lambda = %.6f\n", params.lambda);
-            printf("Eta = %.6f\n", params.eta);
-            printf("Alpha[0] = %d\n", params.alpha[0]);
-            printf("Alpha[1] = %d\n", params.alpha[1]);
-            printf("Number of chains = %d\n", params.nchain);
-            printf("Iterations = %d\n", params.iters);
+//            printf("Lambda = %.6f\n", params.lambda);
+//            printf("Eta = %.6f\n", params.eta);
+//            printf("Alpha[0] = %d\n", params.alpha[0]);
+//            printf("Alpha[1] = %d\n", params.alpha[1]);
+//            printf("Number of chains = %d\n", params.n_chains);
+//            printf("Iterations = %d\n", params.iters);
 
             if (tnum == 3) {
                 /* Now test the model */
@@ -233,17 +232,17 @@ main (int argc, char *argv[])
                 break;
             }
             // Read Modelfile
-            model = read_model(modelfile, nrules, rules, nsamples);
-            p = predict(model, labels, &params);
+            model = read_model(modelfile, train_data.rules, train_data.n_samples);
+            p = predict(model, train_data.labels, &params);
             break;
         default:
             usage();
             break;
     }
-    alpha_destroy(&params);
+    free(params.alpha);
 
-    rules_free(rules, nrules, 1);
-    rules_free(labels, 2, 0);
+    rules_free(train_data.rules, train_data.n_rules);
+    rules_free(train_data.labels, train_data.n_classes);
     if (p != NULL)
         free(p);
     return (0);
@@ -256,14 +255,14 @@ main (int argc, char *argv[])
  * add it at the ndx-th position.
  */
 int
-add_random_rule(rule_t *rules, int nrules, ruleset_t *rs, int ndx)
+add_random_rule(rule_data_t *rules, int nrules, rulelist_t *rs, int ndx)
 {
     int r;
     r = pick_random_rule(nrules, rs);
     if (debug > 100)
         printf("Selected %d for new rule\n", r);
 
-    return (ruleset_add(rules, nrules, &rs, r, ndx));
+    return (ruleset_add(rules, &rs, r, ndx));
 }
 
 /*
@@ -271,15 +270,15 @@ add_random_rule(rule_t *rules, int nrules, ruleset_t *rs, int ndx)
  * swaps, etc.
  */
 void
-run_experiment(int iters, int size, int nsamples, int nrules, rule_t *rules)
+run_experiment(int iters, int size, int nsamples, int nrules, rule_data_t *rules)
 {
-    int i, j, k, ret;
-    ruleset_t *rs;
+    int i, j, k;
+    rulelist_t *rs;
     struct timeval tv_acc, tv_start, tv_end;
 
     for (i = 0; i < iters; i++) {
-        ret = create_random_ruleset(size, nsamples, nrules, rules, &rs);
-        if (ret != 0)
+        rs = create_random_ruleset(size, nsamples, nrules, rules);
+        if (rs == NULL)
             return;
         if (debug) {
             printf("Initial ruleset\n");
@@ -311,7 +310,7 @@ run_experiment(int iters, int size, int nsamples, int nrules, rule_t *rules)
         for (j = 0; j < (size - 1); j++) {
             if (debug > 10)
                 printf("\nDeleting rule %d\n", j);
-            ruleset_delete(rules, nrules, rs, j);
+            ruleset_delete(rules, rs, j);
             // if (debug) 
                 // ruleset_print(rs, rules, (debug > 100));
             add_random_rule(rules, nrules, rs, j);
@@ -330,9 +329,10 @@ test_model(const char *data_file,
     const char *label_file, pred_model_t *model, params_t *params)
 {
     gsl_matrix *p;
-    int *idarray, nsamples, nrules, nclasses;
-    rule_t *rules, *labels;
-    ruleset_t *test_rs, *tmp_rs;
+    int *idarray;
+    data_t test_data;
+//    rule_data_t *rules, *labels;
+    rulelist_t *test_rs, *tmp_rs;
 
     idarray = NULL;
     test_rs = NULL;
@@ -343,18 +343,17 @@ test_model(const char *data_file,
         goto err;
 
     /* Load test data. */
-    if (load_data(data_file,
-        label_file, &nsamples, &nrules, &nclasses, &rules, &labels) != 0)
+    if (load_data(data_file, label_file, &test_data) != 0)
         goto err;
 
     /* Create new ruleset with test data. */
-    if (ruleset_init(model->rs->n_rules,
-        nsamples, idarray, rules, &test_rs) != 0)
+    if ((test_rs = ruleset_init(model->rs->n_rules,
+        test_data.n_samples, idarray, test_data.rules)) == NULL)
         goto err;
 
     tmp_rs = model->rs;
     model->rs = test_rs;
-    p = predict(model, labels, params);
+    p = predict(model, test_data.labels, params);
     model->rs = tmp_rs;
 
 err:
@@ -391,16 +390,15 @@ write_model(const char *file, pred_model_t *model)
 }
 
 pred_model_t *
-read_model(const char *file, int nrules, rule_t *rules, int nsamples)
+read_model(const char *file, rule_data_t *rules, int nsamples)
 {
     // double theta; 
     gsl_matrix *theta_array;
     FILE *fi;
-    int i, *idarray, nslots, n_classes;
+    int *idarray, n_classes;
     pred_model_t *model;
-    ruleset_t *rs;
+    rulelist_t *rs;
 
-    i = nslots = 0;
     model = NULL;
     rs = NULL;
     // idarray = NULL;
@@ -441,15 +439,14 @@ read_model(const char *file, int nrules, rule_t *rules, int nsamples)
     // }
 
     /* Create the ruleset. */
-    if (ruleset_init(i, nsamples, idarray, rules, &rs) != 0)
+    if ((rs = ruleset_init(n_rules, nsamples, idarray, rules)) == NULL)
         goto err;
     /* Create the model. */
     if ((model = malloc(sizeof(pred_model_t))) == NULL)
         goto err;
     model->rs = rs;
     model->theta = theta_array;
-    model->confIntervals = 0;
-    
+
     if (0) {
 err:
         if (rs != NULL)

@@ -5,6 +5,8 @@ Yang, Hongyu, Cynthia Rudin, and Margo Seltzer. "Scalable Bayesian rule lists." 
 
 Original C Implementation: https://github.com/Hongyuy/sbrlmod by Hongyu Yang et al.
 
+Note: This package is not fully tested.
+
 ## Install
 
 Now pysbrl is available through PyPi (with wheels for macOS and linux), you can install it via pip.

@@ -22,12 +22,16 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <stdlib.h>
-#ifdef GMP
-#include <gmp.h>
-#endif
+//
+// Created by Ming Yao on 7/5/18.
+//
 
+#ifndef SBRL_RULE_H
+#define SBRL_RULE_H
+
+#include <stdlib.h>
 #include <gsl/gsl_matrix.h>
+#include "bit_vector.h"
 
 /*
  * This library implements rule set management for Bayesian rule lists.
@@ -54,21 +58,8 @@
  * a rule set stores captures(N, S, RS).
  */
 
-/*
- * Define types for bit vectors.
- */
-typedef unsigned long v_entry;
-#ifdef GMP
-typedef mpz_t VECTOR;
-#define VECTOR_ASSIGN(dest, src) mpz_init_set(dest, src)
-#else
-typedef v_entry *VECTOR;
-#define VECTOR_ASSIGN(dest, src) dest = src
-#endif
-
-
 #define RANDOM_RANGE(lo, hi) \
-    (unsigned)(lo + (unsigned)((random() / (float)RAND_MAX) * (hi - lo + 1)))
+    (unsigned)((lo) + (unsigned)((random() / (float)RAND_MAX) * ((hi) - (lo) + 1)))
 
 /*
  * We have slightly different structures to represent the original rules 
@@ -76,101 +67,90 @@ typedef v_entry *VECTOR;
  * of the rule; the ruleset structure refers to rules by ID and contains
  * captures which is something computed off of the rule's truth table.
  */
-typedef struct rule {
-	char *features;			/* Representation of the rule. */
-	int support;			/* Number of 1's in truth table. */
-	int cardinality;
-	VECTOR truthtable;		/* Truth table; one bit per sample. */
-} rule_t;
 
-typedef struct ruleset_entry {
+typedef struct rule_data {
+    int cardinality;
+    char *feature_str;
+    bit_vector_t *truthtable;
+} rule_data_t;
+
+
+typedef struct rulelist_entry {
 	unsigned rule_id;
-	int ncaptured;			/* Number of 1's in bit vector. */
-	VECTOR captures;		/* Bit vector. */
-} ruleset_entry_t;
+    bit_vector_t *captures;
+} rulelist_entry_t;
 
-typedef struct ruleset {
-	int n_rules;			/* Number of actual rules in the ruleset. */
-	// int n_classes;			/* Number of classes in the label */
-	int n_alloc;			/* Spaces allocated for rules. */
+typedef struct rulelist {
+	int n_rules;			    /* Number of actual rules in the ruleset. */
+	int n_alloc;			    /* Spaces allocated for rules. */
 	int n_samples;
-	ruleset_entry_t rules[];	/* Array of rules. */
-} ruleset_t;
+	rulelist_entry_t rules[];	/* Array of rules. */
+} rulelist_t;
 
 typedef struct params {
 	double lambda;
 	double eta;
 	// double threshold;
 	int iters;
-	int nchain;
+	int n_chains;
 	int n_classes;
 	int * alpha;
 } params_t;
 
 typedef struct data {
-	rule_t * rules;		/* rules in BitVector form in the data */
-	rule_t * labels;	/* labels in BitVector form in the data */
-	int nrules;		/* number of rules */
-	int nsamples;		/* number of samples in the data. */
+	rule_data_t * rules;		/* rules in BitVector form in the data */
+	rule_data_t * labels;	/* labels in BitVector form in the data */
+//    int * cardinalities;
+	int n_rules;		/* number of rules */
+	int n_samples;		/* number of samples in the data. */
+    int n_classes;
 } data_t;
 
-typedef struct interval {
-	double a, b;
-} interval_t;
-
 typedef struct pred_model {
-	ruleset_t *rs;		/* best ruleset. */
-	// double *theta;
+	rulelist_t *rs;		/* best ruleset. */
 	gsl_matrix * theta;
-	interval_t *confIntervals;
 } pred_model_t;
 
 
 /*
  * Functions in the library
  */
-int sum(int n, int* arr);
-void alpha_init(int, int, params_t *);
-void alpha_destroy(params_t *);
 
-int ruleset_init(int, int, int *, rule_t *, ruleset_t **);
-int ruleset_add(rule_t *, int, ruleset_t **, int, int);
-int ruleset_backup(ruleset_t *, int **);
-int ruleset_copy(ruleset_t **, ruleset_t *);
-void ruleset_delete(rule_t *, int, ruleset_t *, int);
-void ruleset_swap(ruleset_t *, int, int, rule_t *);
-void ruleset_swap_any(ruleset_t *, int, int, rule_t *);
-int pick_random_rule(int, ruleset_t *);
+//
+// ruleset_entry
+//
 
-void ruleset_destroy(ruleset_t *);
-void ruleset_print(ruleset_t *, rule_t *, int);
-void ruleset_entry_print(ruleset_entry_t *, int, int);
-int create_random_ruleset(int, int, int, rule_t *, ruleset_t **);
+void ruleset_entry_copy(rulelist_entry_t *dest, rulelist_entry_t *src);
 
-int load_data(const char *, const char *, int *, int *, int *, rule_t **, rule_t **);
-int rules_init(const char *, int *, int *, rule_t **, int);
-void rules_free(rule_t *, const int, int);
 
-void rule_print(rule_t *, int, int, int);
-void rule_print_all(rule_t *, int, int);
-void rule_vector_print(VECTOR, int);
-void rule_copy(VECTOR, VECTOR, int);
+rulelist_t * ruleset_init(int, int, int *, rule_data_t *);
+int ruleset_add(rule_data_t *, rulelist_t **, int, int);
+int ruleset_backup(rulelist_t *, int **);
+int ruleset_copy(rulelist_t **, rulelist_t *);
+int ruleset_delete(rule_data_t *, rulelist_t *, int);
+void ruleset_swap(rulelist_t *, int, int, rule_data_t *);
+void ruleset_swap_any(rulelist_t *, int, int, rule_data_t *);
+int pick_random_rule(int, const rulelist_t *);
 
-int rule_ff1(VECTOR, int, int);
-int rule_isset(VECTOR, int);
-int rule_vinit(int, VECTOR *);
-int rule_vfree(VECTOR *);
-int make_default(VECTOR *, int);
-void rule_vand(VECTOR, VECTOR, VECTOR, int, int *);
-void rule_vandnot(VECTOR, VECTOR, VECTOR, int, int *);
-void rule_vor(VECTOR, VECTOR, VECTOR, int, int *);
-int count_ones(v_entry);
-int count_ones_vector(VECTOR, int);
+
+void ruleset_destroy(rulelist_t *);
+void ruleset_print(rulelist_t *, rule_data_t *, int);
+void ruleset_entry_print(rulelist_entry_t *, int);
+rulelist_t * create_random_ruleset(int, int, int, rule_data_t *);
+
+int load_data(const char *, const char *, data_t *);
+int rules_init_from_file(const char *, int *, int *, rule_data_t **,  int);
+int rules_init_from_data(int, int, char **, rule_data_t **, int);
+void rules_free(rule_data_t *, int);
+
+void rule_print(rule_data_t *, int, int);
+void rule_print_all(rule_data_t *, int);
 
 /* Functions for the Scalable Baysian Rule Lists */
-gsl_matrix *predict(pred_model_t *, rule_t *labels, params_t *);
-int ruleset_proposal(ruleset_t *, int, int *, int *, char *, double *);
-ruleset_t *run_mcmc(int, int, int, rule_t *, rule_t *, params_t *, double);
-ruleset_t *run_simulated_annealing(int,
-    int, int, int, rule_t *, rule_t *, params_t *);
-pred_model_t *train(data_t *, int, int, params_t *);
+gsl_matrix *predict(pred_model_t *, rule_data_t *labels, params_t *);
+int ruleset_proposal(rulelist_t *, int, int *, int *, char *, double *);
+rulelist_t *run_mcmc(data_t *, params_t *, double);
+rulelist_t *run_simulated_annealing(data_t *, params_t *, int);
+pred_model_t *train(data_t *, params_t *, unsigned);
+
+#endif //SBRL_RULE_H

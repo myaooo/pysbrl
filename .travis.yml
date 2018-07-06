@@ -1,5 +1,9 @@
 language: python
 
+env:
+  global:
+    CIBW_SKIP="cp37-* cp33-*"
+
 matrix:
   include:
     - sudo: required

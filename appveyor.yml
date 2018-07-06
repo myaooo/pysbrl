@@ -1,3 +1,6 @@
+environment:
+  global:
+    CIBW_SKIP="cp37-* cp33-*"
 build_script:
   - pip install -r dev-requirements.txt
   - pip install -r test-requirements.txt

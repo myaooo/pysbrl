@@ -6,7 +6,7 @@ setup.py file
 
 # import sys
 import sysconfig
-from setuptools import setup, find_packages
+from setuptools import setup
 from setuptools.extension import Extension
 from setuptools.command.build_ext import build_ext
 
@@ -19,15 +19,17 @@ include_dirs = ['/usr/local/include', '/usr/include', 'c/']
 
 library_dirs = ['/usr/local/lib', 'usr/lib']
 
+sources = ['c/pysbrl.cpp', 'c/train.cpp', 'c/rulelib.cpp', 'c/save_load.cpp',
+           'c/bit_vector.cpp', 'c/utils.cpp', 'swig/pysbrl_wrap.cpp']
+
 pysbrl_module = Extension('_pysbrl',
-                          sources=['c/pysbrl.c', 'c/train.c', 'c/rulelib.c', 'c/save_load.c',
-                                   'c/bit_vector.c', 'c/utils.c', 'swig/pysbrl_wrap.c'],
+                          sources=sources,
                           include_dirs=include_dirs,
                           libraries=libraries,
                           library_dirs=library_dirs,
                           swig_opts=['-keyword'],
                           extra_link_args=["-Bstatic"],
-                          extra_compile_args=['-std=c99']
+                          extra_compile_args=['-std=c++98', '-D DEBUG']
                           )
 
 
@@ -46,7 +48,7 @@ class CustomBuildExtCommand(build_ext):
 
 
 setup(name='pysbrl',
-      version='0.4',
+      version='0.4rc',
       author="Yao, Ming",
       description="""A python interface of Scalable Bayesian Rule List""",
       ext_modules=[pysbrl_module],

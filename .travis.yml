@@ -1,21 +1,41 @@
-language: python
+addons:
+  apt:
+    packages:
+      - swig
 
-env:
-  global:
-    CIBW_SKIP="cp37-* cp33-*"
+notifications:
+  email: false
+
+deploy:
+  provider: pypi
+  user: $PYPI_USER
+  password: $PYPI_PASSWORD
+  skip_cleanup: true
+  on:
+    tags: true
 
 matrix:
   include:
     - sudo: required
       services:
         - docker
-      env: PIP=pip
-    - os: osx
-      language: generic
-      env: PIP=pip2
+      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
+    - sudo: required
+      services:
+        - docker
+      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
+    - sudo: required
+      os: osx
+      services:
+        - docker
+      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
+
+install:
+  - scripts/compile_swig.sh
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install swig    ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker pull $DOCKER_IMAGE; fi
 
 script:
-  - $PIP install -r dev-requirements.txt
-  - $PIP install -r test-requirements.txt
-  - $PIP install cibuildwheel==0.9.2
-  - cibuildwheel --output-dir wheelhouse
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker run -v `pwd`:/code $DOCKER_IMAGE /code/scripts/docker_build.sh    ; fi
+  - ls wheelhouse/

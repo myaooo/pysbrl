@@ -41,14 +41,13 @@ double
 get_accuracy(rulelist_t *rs,
              gsl_matrix *theta, rule_data_t *test_labels, params_t *params) {
     int j, nwrong = 0;
-    int *corrects;
+    int *corrects = (int *) malloc(sizeof(int) * params->n_classes);
     bit_vector_t *v0 = bit_vector_init((bit_size_t) rs->n_samples);
 
-    corrects = calloc((size_t) params->n_classes, sizeof(int));
     for (j = 0; j < rs->n_rules; j++) {
         // int n1_correct = 0, n0_correct = 0;
         gsl_vector_view theta_j = gsl_matrix_row(theta, j);
-        int max_idx = gsl_vector_max_index(&(theta_j.vector));
+        size_t max_idx = gsl_vector_max_index(&(theta_j.vector));
         bit_vector_and(v0, rs->rules[j].captures, test_labels[max_idx].truthtable);
         corrects[max_idx] = bit_vector_n_ones(v0);
         nwrong += bit_vector_n_ones(rs->rules[j].captures) - corrects[max_idx];

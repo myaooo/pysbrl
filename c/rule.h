@@ -29,7 +29,7 @@
 #ifndef SBRL_RULE_H
 #define SBRL_RULE_H
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <gsl/gsl_matrix.h>
 #include "bit_vector.h"
 
@@ -80,12 +80,14 @@ typedef struct rulelist_entry {
     bit_vector_t *captures;
 } rulelist_entry_t;
 
-typedef struct rulelist {
+struct rulelist {
 	int n_rules;			    /* Number of actual rules in the ruleset. */
 	int n_alloc;			    /* Spaces allocated for rules. */
 	int n_samples;
-	rulelist_entry_t rules[];	/* Array of rules. */
-} rulelist_t;
+	rulelist_entry_t* rules;	/* Array of rules. */
+};
+
+typedef rulelist rulelist_t;
 
 typedef struct params {
 	double lambda;
@@ -122,6 +124,7 @@ typedef struct pred_model {
 
 void ruleset_entry_copy(rulelist_entry_t *dest, rulelist_entry_t *src);
 
+rulelist_t * ruleset_create(int n_alloc, int n_samples);
 
 rulelist_t * ruleset_init(int, int, int *, rule_data_t *);
 int ruleset_add(rule_data_t *, rulelist_t **, int, int);
@@ -131,7 +134,6 @@ int ruleset_delete(rule_data_t *, rulelist_t *, int);
 void ruleset_swap(rulelist_t *, int, int, rule_data_t *);
 void ruleset_swap_any(rulelist_t *, int, int, rule_data_t *);
 int pick_random_rule(int, const rulelist_t *);
-
 
 void ruleset_destroy(rulelist_t *);
 void ruleset_print(rulelist_t *, rule_data_t *, int);
@@ -151,6 +153,6 @@ gsl_matrix *predict(pred_model_t *, rule_data_t *labels, params_t *);
 int ruleset_proposal(rulelist_t *, int, int *, int *, char *, double *);
 rulelist_t *run_mcmc(data_t *, params_t *, double);
 //rulelist_t *run_simulated_annealing(data_t *, params_t *, int);
-pred_model_t *train(data_t *, params_t *, long);
+pred_model_t *train(data_t * train_data, params_t * params, long seed, int verbose = 0);
 
 #endif //SBRL_RULE_H

@@ -27,21 +27,20 @@
 
 //#define _GNU_SOURCE
 
-#include <assert.h>
-#include <errno.h>
-#include <float.h>
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <time.h>
+#include <cassert>
+#include <cerrno>
+#include <cfloat>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
+#include <ctime>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_sf.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
-#include <limits.h>
+#include <climits>
 #include "mytime.h"
 #include "rule.h"
 #include "utils.h"
@@ -58,23 +57,23 @@
 //#define EPSILON 1e-9
 #define MAX_RULE_CARDINALITY 10
 
-gsl_rng *RAND_GSL;
+static gsl_rng *RAND_GSL;
 
 /*
  * File global variables.
  * These make the library not thread safe. If we want to be thread safe during
  * training, then we should reference count these global tables.
  */
-static double *log_lambda_pmf, *log_eta_pmf;
-static double *log_gammas;
+static double *g_log_lambda_pmf, *g_log_eta_pmf;
+static double *g_log_gammas;
+static double log_gamma_sum;
 static double eta_norm;
 static int n_add, n_delete, n_swap;
 static int card_count[1 + MAX_RULE_CARDINALITY];
 // idx: the length of a rule, val: the count of rules having such length
 
 /* These hold the alpha parameter values to speed up log_gamma lookup. */
-static int alpha_sum, *alpha;
-static double log_gamma_sum;
+static int alpha_sum, *g_alpha;
 // static int a0, a1, a01, alpha_sum;
 
 typedef struct _permute {
@@ -148,8 +147,8 @@ propose(rulelist_t *rs, data_t* train_data,
             goto err;
 
 
-    DEBUG_PRINT("Given ruleset: \n");
-    DEBUG_RUN(ruleset_print(rs, train_data->rules, 0));
+//    DEBUG_PRINT("Given ruleset: \n");
+//    DEBUG_RUN(ruleset_print(rs, train_data->rules, 0));
     DEBUG_PRINT("Operation %c(%d)(%d) produced proposal:\n", stepchar, ndx1, ndx2);
     switch (stepchar) {
     case 'A':
@@ -178,7 +177,7 @@ propose(rulelist_t *rs, data_t* train_data,
     new_log_post = compute_log_posterior(rs_new,
         train_data, params, change_ndx, &prefix_bound);
 
-    DEBUG_RUN(ruleset_print(rs_new, train_data->rules, 0));
+//    DEBUG_RUN(ruleset_print(rs_new, train_data->rules, 0));
     DEBUG_PRINT("With new log_posterior = %0.6f\n", new_log_post);
     if (prefix_bound < max_log_post)
         (*cnt)++;
@@ -214,19 +213,19 @@ compute_log_gammas(int nsamples, params_t *params)
     // a0 = params->alpha[0];
     // a1 = params->alpha[1];
     // a01 = a0 + a1;
-    alpha = params->alpha;
-    alpha_sum = arr_sum(params->n_classes, alpha);
+    g_alpha = params->alpha;
+    alpha_sum = arr_sum(params->n_classes, g_alpha);
 
     max = nsamples + 2 * (1 + alpha_sum);
-    log_gammas = malloc(sizeof(double) * max);
-    if (log_gammas == NULL)
+    g_log_gammas = (double *) malloc(sizeof(double) * max);
+    if (g_log_gammas == NULL)
         return (-1);
 
     for (i = 1; i < max; i++)
-        log_gammas[i] = gsl_sf_lngamma((double)i);
+        g_log_gammas[i] = gsl_sf_lngamma((double)i);
     log_gamma_sum = 0.;
     for (i = 0; i < params->n_classes; i++)
-        log_gamma_sum += log_gammas[alpha[i]];
+        log_gamma_sum += g_log_gammas[g_alpha[i]];
     
     // printf("max of n: %d\n", max);
     return (0);
@@ -242,19 +241,18 @@ compute_pmf(int nrules, params_t *params)
         params->lambda = (double) nrules;
 //        pmf_size = nrules+1;
     }
-    if ((log_lambda_pmf = malloc(nrules * sizeof(double))) == NULL)
+    if ((g_log_lambda_pmf = (double *) malloc(nrules * sizeof(double))) == NULL)
         return (errno);
     for (i = 0; i < nrules; i++) {
-        log_lambda_pmf[i] = log(gsl_ran_poisson_pdf((unsigned) i, params->lambda));
-//        printf("log_lambda_pmf[ %d ] = %6f\n", i, log_lambda_pmf[i]);
+        g_log_lambda_pmf[i] = log(gsl_ran_poisson_pdf((unsigned) i, params->lambda));
+//        printf("g_log_lambda_pmf[ %d ] = %6f\n", i, g_log_lambda_pmf[i]);
     }
 
-    if ((log_eta_pmf =
-        malloc((1 + MAX_RULE_CARDINALITY) * sizeof(double))) == NULL)
+    if ((g_log_eta_pmf = (double *) malloc((1 + MAX_RULE_CARDINALITY) * sizeof(double))) == NULL)
         return (errno);
     for (i = 0; i <= MAX_RULE_CARDINALITY; i++) {
-        log_eta_pmf[i] = log(gsl_ran_poisson_pdf((unsigned) i, params->eta));
-//        printf("log_eta_pmf[ %d ] = %6f\n", i, log_eta_pmf[i]);
+        g_log_eta_pmf[i] = log(gsl_ran_poisson_pdf((unsigned) i, params->eta));
+//        printf("g_log_eta_pmf[ %d ] = %6f\n", i, g_log_eta_pmf[i]);
     }
 
     /*
@@ -284,9 +282,6 @@ count_cardinality(int n_rules, rule_data_t * rules)
         card_count[rules[i].cardinality]++;
     }
 
-//    for (i = 0; i <= MAX_RULE_CARDINALITY; i++)
-//        printf("There are %d rules with cardinality %d.\n",
-//            card_count[i], i);
 }
 
 int
@@ -299,10 +294,10 @@ int
 permute_rules(int nrules)
 {
     int i;
-    if ((rule_permutation = malloc(sizeof(permute_t) * nrules)) == NULL)
+    if ((rule_permutation = (permute_t *) malloc(sizeof(permute_t) * nrules)) == NULL)
         return (-1);
     for (i = 1; i < nrules; i++) {
-        rule_permutation[i].val = (int) gsl_rng_uniform_int(RAND_GSL, INT_MAX);
+        rule_permutation[i].val = (int) gsl_rng_get(RAND_GSL);
         rule_permutation[i].ndx = i;
     }
     qsort(rule_permutation, (unsigned) nrules, sizeof(permute_t), permute_cmp);
@@ -311,8 +306,27 @@ permute_rules(int nrules)
 
 }
 
+void clean_static_resources() {
+    /* Free allocated memory. */
+    if (g_log_lambda_pmf != NULL)
+        free(g_log_lambda_pmf);
+    g_log_lambda_pmf = NULL;
+    if (g_log_eta_pmf != NULL)
+        free(g_log_eta_pmf);
+    g_log_eta_pmf = NULL;
+    if (rule_permutation != NULL)
+        free(rule_permutation);
+    rule_permutation = NULL;
+    if (g_log_gammas != NULL)
+        free(g_log_gammas);
+    g_log_gammas = NULL;
+    if (RAND_GSL != NULL)
+        gsl_rng_free(RAND_GSL);
+    RAND_GSL = NULL;
+}
+
 pred_model_t *
-train(data_t *train_data, params_t *params, long seed)
+train(data_t *train_data, params_t *params, long seed, int verbose)
 {
     int chain, default_rule;
     pred_model_t *pred_model;
@@ -320,10 +334,14 @@ train(data_t *train_data, params_t *params, long seed)
     double max_pos, pos_temp, null_bound;
 
     /* initialize random number generator for some distributions. */
+    if (verbose > 2)
+        fprintf(stdout, "initializing gsl generator");
     init_gsl_rand_gen(seed);
 
     pred_model = NULL;
     rs = NULL;
+    if (verbose > 2)
+        fprintf(stdout, "computing pmf");
     if (compute_pmf(train_data->n_rules, params) != 0)
         goto err;
     count_cardinality(train_data->n_rules, train_data->rules);
@@ -331,7 +349,7 @@ train(data_t *train_data, params_t *params, long seed)
     if (compute_log_gammas(train_data->n_samples, params) != 0)
         goto err;
 
-    if ((pred_model = calloc(1, sizeof(pred_model_t))) == NULL)
+    if ((pred_model = (pred_model_t *) calloc(1, sizeof(pred_model_t))) == NULL)
         goto err;
 
     default_rule = 0;
@@ -378,18 +396,10 @@ err:
             free (pred_model);
     }
     /* Free allocated memory. */
-    if (log_lambda_pmf != NULL)
-        free(log_lambda_pmf);
-    if (log_eta_pmf != NULL)
-        free(log_eta_pmf);
-    if (rule_permutation != NULL)
-        free(rule_permutation);
-    if (log_gammas != NULL)
-        free(log_gammas);
+    clean_static_resources();
     if (rs != NULL)
         ruleset_destroy(rs);
 
-    gsl_rng_free(RAND_GSL);
     return (pred_model);
 }
 
@@ -397,17 +407,14 @@ gsl_matrix *
 get_theta(rulelist_t * rs, rule_data_t * labels, params_t *params)
 {
     /* calculate captured 0's and 1's */
-    bit_vector_t * v0;
-    gsl_matrix *theta;
     int i, j, max_idx;
     int theta_dominator;
-    int *ns;
 
-    v0 = bit_vector_init((bit_size_t) rs->n_samples);
+    bit_vector_t * v0 = bit_vector_init((bit_size_t) rs->n_samples);
     // theta = malloc(rs->n_rules * sizeof(double));
-    theta = gsl_matrix_alloc((unsigned)(rs->n_rules), (unsigned)(params->n_classes));
+    gsl_matrix * theta = gsl_matrix_alloc((unsigned)(rs->n_rules), (unsigned)(params->n_classes));
     // printf("theta allocated\n");
-    ns = malloc(params->n_classes * sizeof(int));
+    int * ns = (int *) malloc(params->n_classes * sizeof(int));
     if (theta == NULL)
         return (NULL);
 
@@ -422,7 +429,7 @@ get_theta(rulelist_t * rs, rule_data_t * labels, params_t *params)
         // TODO
         for (i = 0; i < params->n_classes; i++) {
             gsl_matrix_set(theta, (unsigned) j, (unsigned) i,
-                (ns[i] + alpha[i] * 1.0) / theta_dominator);
+                (ns[i] + g_alpha[i] * 1.0) / theta_dominator);
         }
         gsl_vector_view theta_j = gsl_matrix_row(theta, (unsigned) j);
         max_idx = (int) gsl_vector_max_index(&(theta_j.vector));
@@ -481,12 +488,6 @@ run_mcmc(data_t * train_data, params_t *params, double v_star)
             permute_ndx = 1;
         rs = ruleset_init(2, train_data->n_samples, rarray, train_data->rules);
         log_post_rs = compute_log_posterior(rs, train_data, params, 1, &prefix_bound);
-//        if (debug > 10) {
-//            printf("Initial random ruleset\n");
-//            ruleset_print(rs, train_data->rules, 1);
-//            printf("Prefix bound = %f v_star = %f\n",
-//                prefix_bound, v_star);
-//        }
     }
 
     /*
@@ -524,8 +525,8 @@ run_mcmc(data_t * train_data, params_t *params, double v_star)
 
     printf("max_log_posterior = %6f\n", max_log_posterior);
     printf("max_log_posterior = %6f\n",
-        compute_log_posterior(rs, train_data, params, 1, -1, &prefix_bound));
-    ruleset_print(rs, train_data->rules, (debug > 100));
+        compute_log_posterior(rs, train_data, params, -1, &prefix_bound));
+    ruleset_print(rs, train_data->rules, 0);
 #endif
     return (rs);
 
@@ -627,29 +628,29 @@ compute_log_posterior(const rulelist_t *rs, data_t * train_data,
 
     /* Calculate log_prior and prefix_prior. */
     norm_constant = eta_norm;
-    log_prior = log_lambda_pmf[rs->n_rules - 1];
+    log_prior = g_log_lambda_pmf[rs->n_rules - 1];
     int lambda = (int) params->lambda;
     int max_p_lambda = MAX(rs->n_rules - 1, lambda);
-    prefix_prior += log_lambda_pmf[max_p_lambda];
+    prefix_prior += g_log_lambda_pmf[max_p_lambda];
     // Don't compute the last (default) rule.
     for (i = 0; i < rs->n_rules - 1; i++) {
         li = train_data->rules[rs->rules[i].rule_id].cardinality;
-        log_prior += log_eta_pmf[li] - log(norm_constant) - log(local_cards[li]+1e-4);
+        log_prior += g_log_eta_pmf[li] - log(norm_constant) - log(local_cards[li]+1e-4);
         assert(local_cards[li] > 0);
         // added for prefix_bound
         if (i < length4bound) {
-            prefix_prior += log_eta_pmf[li] -
+            prefix_prior += g_log_eta_pmf[li] -
                 log(norm_constant) - log(local_cards[li]+1e-4);
         }
 
         local_cards[li]--;
         if (local_cards[li] == 0)
-            norm_constant -= exp(log_eta_pmf[li]);
+            norm_constant -= exp(g_log_eta_pmf[li]);
     }
 
     /* Calculate log_likelihood */
-    int * supports = malloc(params->n_classes * sizeof(int));
-    int * ns = malloc(params->n_classes * sizeof(int));
+    int * supports = (int *) malloc(params->n_classes * sizeof(int));
+    int * ns = (int *) malloc(params->n_classes * sizeof(int));
     for (i = 0; i < params->n_classes; i++) {
         supports[i] = bit_vector_n_ones(train_data->labels[i].truthtable);
     }
@@ -667,10 +668,10 @@ compute_log_posterior(const rulelist_t *rs, data_t * train_data,
         // printf("log_gammas:");
         for (i = 0; i < params->n_classes; i++) {
             // printf(" %d %.6f;", ns[i], log_gammas[ns[i]+alpha[i]]);
-            _log_likelihood += log_gammas[ns[i]+alpha[i]];
+            _log_likelihood += g_log_gammas[ns[i]+g_alpha[i]];
         }
         // printf("\n");
-        _log_likelihood -= log_gammas[arr_sum(params->n_classes, ns) + alpha_sum];
+        _log_likelihood -= g_log_gammas[arr_sum(params->n_classes, ns) + alpha_sum];
         log_likelihood += _log_likelihood;
         // Added for prefix_bound.
         if (j < length4bound) {
@@ -678,9 +679,9 @@ compute_log_posterior(const rulelist_t *rs, data_t * train_data,
             if (j == (length4bound - 1)) {
                 for (i = 0; i < params->n_classes; i++) {
                     prefix_log_likelihood += 
-                        log_gamma_sum - log_gammas[alpha[i]] +
-                        log_gammas[supports[i] + alpha[i]]
-                        - log_gammas[supports[i] + alpha_sum];
+                        log_gamma_sum - g_log_gammas[g_alpha[i]] +
+                        g_log_gammas[supports[i] + g_alpha[i]]
+                        - g_log_gammas[supports[i] + alpha_sum];
                 }
             }
         }
@@ -731,9 +732,9 @@ ruleset_proposal(rulelist_t * rs, int nrules,
 
     double moveProbs[3], jumpRatios[3];
     int offset = 0;
-    if (rs->n_rules == 1) {
+    if (rs->n_rules <= 2) {
         offset = 0;
-    } else if (rs->n_rules == 2) {
+    } else if (rs->n_rules == 3) {
         offset = 3;
     } else if (rs->n_rules == nrules - 1) {
         offset = 6;

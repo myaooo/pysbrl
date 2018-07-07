@@ -2,10 +2,10 @@
 // Created by Ming Yao on 7/5/18.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cerrno>
+#include <cstring>
 #include "bit_vector.h"
 
 /* One-counting tools */
@@ -56,12 +56,8 @@ static inline void _mask_top_word(bit_vector_t *bitvec) {
 
 // all bits set to 0
 bit_vector_t *bit_vector_init(bit_size_t nbits) {
-    bit_vector_t *ret;
-    ret = malloc(sizeof(bit_vector_t));
-    if (ret == NULL) {
-        errno = ENOMEM;
-        return NULL;
-    }
+    bit_vector_t *ret = (bit_vector_t *)malloc(sizeof(bit_vector_t));
+
     ret->n_bits = nbits;
     ret->n_words = nbits2nwords(nbits);
     ret->words = (word_t *) calloc(ret->n_words, sizeof(word_t));

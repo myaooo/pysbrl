@@ -85,7 +85,7 @@ main (int argc, char *argv[])
     params_t params = {9.0, 2.0, 100, 11, 2, NULL};
 
     debug = 0;
-    alpha = 1;
+    alpha = 10000;
     p = NULL;
     iters = params.iters;
     tnum = TEST_TEST;
@@ -145,7 +145,7 @@ main (int argc, char *argv[])
     if ((ret = load_data(argv[0], argv[1], &train_data)) != 0) {
         return (ret);
     }
-    params.alpha = malloc(train_data.n_classes * sizeof(int));
+    params.alpha = (int *) malloc(train_data.n_classes * sizeof(int));
     for (i = 0; i < train_data.n_classes; i++) {
         params.alpha[i] = alpha;
     }
@@ -412,7 +412,7 @@ read_model(const char *file, rule_data_t *rules, int nsamples)
     int n_rules;
     fscanf(fi, "%d %d", &n_rules, &n_classes);
 
-    idarray = malloc(n_rules * sizeof(int));
+    idarray = (int *) malloc(n_rules * sizeof(int));
     theta_array = gsl_matrix_alloc(n_rules, n_classes);
     for (int j = 0; j < n_rules; j++) {
         fscanf(fi, "%d", idarray+j);
@@ -442,7 +442,7 @@ read_model(const char *file, rule_data_t *rules, int nsamples)
     if ((rs = ruleset_init(n_rules, nsamples, idarray, rules)) == NULL)
         goto err;
     /* Create the model. */
-    if ((model = malloc(sizeof(pred_model_t))) == NULL)
+    if ((model = (pred_model_t *)malloc(sizeof(pred_model_t))) == NULL)
         goto err;
     model->rs = rs;
     model->theta = theta_array;

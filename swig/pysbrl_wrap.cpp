@@ -15,6 +15,30 @@
 
 #define SWIG_PYTHON_DIRECTOR_NO_VTABLE
 
+
+#ifdef __cplusplus
+/* SwigValueWrapper is described in swig.swg */
+template<typename T> class SwigValueWrapper {
+  struct SwigMovePointer {
+    T *ptr;
+    SwigMovePointer(T *p) : ptr(p) { }
+    ~SwigMovePointer() { delete ptr; }
+    SwigMovePointer& operator=(SwigMovePointer& rhs) { T* oldptr = ptr; ptr = 0; delete oldptr; ptr = rhs.ptr; rhs.ptr = 0; return *this; }
+  } pointer;
+  SwigValueWrapper& operator=(const SwigValueWrapper<T>& rhs);
+  SwigValueWrapper(const SwigValueWrapper<T>& rhs);
+public:
+  SwigValueWrapper() : pointer(0) { }
+  SwigValueWrapper& operator=(const T& t) { SwigMovePointer tmp(new T(t)); pointer = tmp; return *this; }
+  operator T&() const { return *pointer.ptr; }
+  T *operator&() { return pointer.ptr; }
+};
+
+template <typename T> T SwigValueInit() {
+  return T();
+}
+#endif
+
 /* -----------------------------------------------------------------------------
  *  This section contains generic SWIG labels for method/variable
  *  declarations/attributes, and other compiler dependent labels.
@@ -3013,8 +3037,81 @@ static swig_module_info swig_module = {swig_types, 5, 0, 0, 0, 0};
 #define SWIG_VERSION SWIGVERSION
 
 
-#define SWIG_as_voidptr(a) (void *)((const void *)(a)) 
-#define SWIG_as_voidptrptr(a) ((void)SWIG_as_voidptr(*a),(void**)(a)) 
+#define SWIG_as_voidptr(a) const_cast< void * >(static_cast< const void * >(a)) 
+#define SWIG_as_voidptrptr(a) ((void)SWIG_as_voidptr(*a),reinterpret_cast< void** >(a)) 
+
+
+#include <stdexcept>
+
+
+namespace swig {
+  class SwigPtr_PyObject {
+  protected:
+    PyObject *_obj;
+
+  public:
+    SwigPtr_PyObject() :_obj(0)
+    {
+    }
+
+    SwigPtr_PyObject(const SwigPtr_PyObject& item) : _obj(item._obj)
+    {
+      SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+      Py_XINCREF(_obj);      
+      SWIG_PYTHON_THREAD_END_BLOCK;
+    }
+    
+    SwigPtr_PyObject(PyObject *obj, bool initial_ref = true) :_obj(obj)
+    {
+      if (initial_ref) {
+        SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+        Py_XINCREF(_obj);
+        SWIG_PYTHON_THREAD_END_BLOCK;
+      }
+    }
+    
+    SwigPtr_PyObject & operator=(const SwigPtr_PyObject& item) 
+    {
+      SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+      Py_XINCREF(item._obj);
+      Py_XDECREF(_obj);
+      _obj = item._obj;
+      SWIG_PYTHON_THREAD_END_BLOCK;
+      return *this;      
+    }
+    
+    ~SwigPtr_PyObject() 
+    {
+      SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+      Py_XDECREF(_obj);
+      SWIG_PYTHON_THREAD_END_BLOCK;
+    }
+    
+    operator PyObject *() const
+    {
+      return _obj;
+    }
+
+    PyObject *operator->() const
+    {
+      return _obj;
+    }
+  };
+}
+
+
+namespace swig {
+  struct SwigVar_PyObject : SwigPtr_PyObject {
+    SwigVar_PyObject(PyObject* obj = 0) : SwigPtr_PyObject(obj, false) { }
+    
+    SwigVar_PyObject & operator = (PyObject* obj)
+    {
+      Py_XDECREF(_obj);
+      _obj = obj;
+      return *this;      
+    }
+  };
+}
 
 
 /* Put header files here or function declarations like below */
@@ -3028,6 +3125,9 @@ static swig_module_info swig_module = {swig_types, 5, 0, 0, 0, 0};
 #include "stdio.h"
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
+
+
+#include <complex> 
 
 
 SWIGINTERN swig_type_info*
@@ -3090,7 +3190,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
 	if (*alloc == SWIG_NEWOBJ) 
 #endif
 	{
-	  *cptr = (char *)memcpy(malloc((len + 1)*sizeof(char)), cstr, sizeof(char)*(len + 1));
+	  *cptr = reinterpret_cast< char* >(memcpy(new char[len + 1], cstr, sizeof(char)*(len + 1)));
 	  *alloc = SWIG_NEWOBJ;
 	} else {
 	  *cptr = cstr;
@@ -3128,7 +3228,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
       if (PyString_AsStringAndSize(obj, &cstr, &len) != -1) {
         if (cptr) {
           if (alloc) *alloc = SWIG_NEWOBJ;
-          *cptr = (char *)memcpy(malloc((len + 1)*sizeof(char)), cstr, sizeof(char)*(len + 1));
+          *cptr = reinterpret_cast< char* >(memcpy(new char[len + 1], cstr, sizeof(char)*(len + 1)));
         }
         if (psize) *psize = len + 1;
 
@@ -3303,7 +3403,7 @@ SWIG_AsVal_int (PyObject * obj, int *val)
     if ((v < INT_MIN || v > INT_MAX)) {
       return SWIG_OverflowError;
     } else {
-      if (val) *val = (int)(v);
+      if (val) *val = static_cast< int >(v);
     }
   }  
   return res;
@@ -3857,32 +3957,32 @@ SWIGINTERN PyObject *_wrap_train_sbrl(PyObject *SWIGUNUSEDPARM(self), PyObject *
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "train_sbrl" "', argument " "1"" of type '" "char const *""'");
   }
-  arg1 = (char *)(buf1);
+  arg1 = reinterpret_cast< char * >(buf1);
   res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "train_sbrl" "', argument " "2"" of type '" "char const *""'");
   }
-  arg2 = (char *)(buf2);
+  arg2 = reinterpret_cast< char * >(buf2);
   ecode3 = SWIG_AsVal_double(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "train_sbrl" "', argument " "3"" of type '" "double""'");
   } 
-  arg3 = (double)(val3);
+  arg3 = static_cast< double >(val3);
   ecode4 = SWIG_AsVal_double(obj3, &val4);
   if (!SWIG_IsOK(ecode4)) {
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "train_sbrl" "', argument " "4"" of type '" "double""'");
   } 
-  arg4 = (double)(val4);
+  arg4 = static_cast< double >(val4);
   ecode5 = SWIG_AsVal_int(obj4, &val5);
   if (!SWIG_IsOK(ecode5)) {
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "train_sbrl" "', argument " "5"" of type '" "int""'");
   } 
-  arg5 = (int)(val5);
+  arg5 = static_cast< int >(val5);
   ecode6 = SWIG_AsVal_int(obj5, &val6);
   if (!SWIG_IsOK(ecode6)) {
     SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "train_sbrl" "', argument " "6"" of type '" "int""'");
   } 
-  arg6 = (int)(val6);
+  arg6 = static_cast< int >(val6);
   {
     npy_intp size[1] = {
       -1 
@@ -3899,12 +3999,12 @@ SWIGINTERN PyObject *_wrap_train_sbrl(PyObject *SWIGUNUSEDPARM(self), PyObject *
   if (!SWIG_IsOK(ecode9)) {
     SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "train_sbrl" "', argument " "9"" of type '" "long""'");
   } 
-  arg9 = (long)(val9);
+  arg9 = static_cast< long >(val9);
   ecode10 = SWIG_AsVal_int(obj8, &val10);
   if (!SWIG_IsOK(ecode10)) {
     SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "train_sbrl" "', argument " "10"" of type '" "int""'");
   } 
-  arg10 = (int)(val10);
+  arg10 = static_cast< int >(val10);
   result = (int)train_sbrl((char const *)arg1,(char const *)arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17);
   {
     if (result == 2) {
@@ -3967,8 +4067,8 @@ SWIGINTERN PyObject *_wrap_train_sbrl(PyObject *SWIGUNUSEDPARM(self), PyObject *
     }
     resultobj = SWIG_Python_AppendOutput(resultobj, o);
   }
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   {
     if (is_new_object7 && array7)
     {
@@ -3977,8 +4077,8 @@ SWIGINTERN PyObject *_wrap_train_sbrl(PyObject *SWIGUNUSEDPARM(self), PyObject *
   }
   return resultobj;
 fail:
-  if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-  if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+  if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   {
     if (is_new_object7 && array7)
     {

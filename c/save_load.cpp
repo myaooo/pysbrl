@@ -2,8 +2,8 @@
 // Created by Ming Yao on 6/29/18.
 //
 
-#include <assert.h>
-#include <string.h>
+#include <cassert>
+#include <cstring>
 
 #include "rule.h"
 #include "utils.h"
@@ -120,7 +120,7 @@ rules_init_from_stream(FILE *fi, int *n_rules, int *n_samples,
         goto err;
     }
 
-    rules = malloc(*n_rules * sizeof(rule_data_t));
+    rules = (rule_data_t *) malloc(*n_rules * sizeof(rule_data_t));
 
     for (i = 0; i < *n_rules; i++) {
         if ((len = _getline(&line, &linelen, fi)) > 0) {

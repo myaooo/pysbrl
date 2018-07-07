@@ -28,7 +28,7 @@ char * _strdup(const char * src) {
     char *str;
     size_t len = strlen(src);
 
-    str = malloc(len + 1);
+    str = (char *) malloc(len + 1);
     if (str) {
         memcpy(str, src, len + 1);
     }

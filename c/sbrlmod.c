@@ -179,7 +179,7 @@ main (int argc, char *argv[])
 //            train_data.n_samples = nsamples;
             INIT_TIME(tv_acc);
             START_TIME(tv_start);
-            model = train(&train_data, &params, 0);
+            model = train(&train_data, &params, 0, 0);
             END_TIME(tv_start, tv_end, tv_acc);
             REPORT_TIME("Time to train", "", tv_end, 1);
 

@@ -7,6 +7,7 @@ try:
 except ImportError:
     pass
 
+import os
 from functools import reduce
 from collections import namedtuple
 import time
@@ -44,7 +45,7 @@ class Rule(namedtuple("Rule", ["clauses", "output"])):
         satisfied = []
         if self.is_default():
             return np.ones(x_cat.shape[0], dtype=bool)
-        for idx, cat in zip(self.clauses):
+        for idx, cat in self.clauses:
             satisfied.append(x_cat[:, idx] == cat)
         return reduce(np.logical_and, satisfied)
 
@@ -80,7 +81,10 @@ def print_rule(rule, feature_names=None, category_names=None, label="label", sup
 
         categories = []
         for feature_idx, category in rule.clauses:
-            _category_names = category_names[feature_idx]
+            if category_names is None:
+                _category_names = None
+            else:
+                _category_names = category_names[feature_idx]
             if _category_names is None:
                 categories.append(" = " + str(category))
             else:
@@ -127,7 +131,7 @@ class BayesianRuleList(object):
 
     """
 
-    def __init__(self, min_rule_len=1, max_rule_len=2, min_support=0.01, lambda_=50, eta=1, iters=30000,
+    def __init__(self, min_rule_len=1, max_rule_len=2, min_support=0.01, lambda_=20, eta=1, iters=30000,
                  n_chains=30, alpha=1, fim_method='eclat', feature_names=None, category_names=None, seed=None):
         # type: (int, int, float, float, float, int, int, int) -> None
         # parameters used for the SBRL algorithm
@@ -185,23 +189,25 @@ class BayesianRuleList(object):
         """
 
         # Create temporary files
-        data_file = tempfile.NamedTemporaryFile("w")
-        label_file = tempfile.NamedTemporaryFile("w")
+        data_file = tempfile.NamedTemporaryFile("w+b", delete=False)
+        label_file = tempfile.NamedTemporaryFile("w+b", delete=False)
 
         start = time.time()
         raw_rules = categorical2pysbrl_data(x, y, data_file.name, label_file.name, supp=self.min_support,
                                             zmin=self.min_rule_len, zmax=self.max_rule_len, method=self.fim_method)
+        data_file.close()
+        label_file.close()
         cat_time = time.time() - start
         if verbose:
-            print("time for rule mining: %.4fs" % cat_time)
+            print("Info: time for rule mining: %.4fs" % cat_time)
         n_labels = int(np.max(y)) + 1
         start = time.time()
         _model = train_sbrl(data_file.name, label_file.name, self.lambda_, eta=self.eta,
                             max_iters=self.iters, n_chains=self.n_chains, seed=self.seed,
-                            alpha=[self.alpha for _ in range(n_labels)])
+                            alpha=self.alpha, verbose=verbose)
         train_time = time.time() - start
         if verbose:
-            print("training time: %.4fs" % train_time)
+            print("Info: training time: %.4fs" % train_time)
 
         # update model parameters
         self._n_classes = n_labels
@@ -212,8 +218,8 @@ class BayesianRuleList(object):
         self._supports = self.compute_support(x, y)
 
         # Close the temp files
-        data_file.close()
-        label_file.close()
+        os.unlink(data_file.name)
+        os.unlink(label_file.name)
 
     def from_raw(self, rule_ids, outputs, raw_rules):
         """
@@ -226,7 +232,7 @@ class BayesianRuleList(object):
         self._rule_pool = [([], [])] + raw_rules
         self._rule_list = []
         for i, idx in enumerate(rule_ids):
-            rule = Rule([Clause(f, c) for f, c in self._rule_pool[idx]], outputs[i])
+            rule = Rule([Clause(f, c) for f, c in zip(*self._rule_pool[idx])], outputs[i])
             self._rule_list.append(rule)
             # self._rule_list.append(rule_str2rule(_rule_name, outputs[i]))
         self._rule_ids = rule_ids
@@ -322,6 +328,14 @@ class BayesianRuleList(object):
         y_prob = self.predict_proba(x)
         y_pred = np.argmax(y_prob, axis=1)
         return y_pred
+
+    def score(self, x, y, sample_weight=None):
+        y_pred = self.predict(x)
+        corrects = (y == y_pred).astype(np.float32)
+        if sample_weight is None:
+            return np.mean(corrects)
+        else:
+            return np.average(corrects, weights=sample_weight)
 
     def _print(self, feature_names=None, category_names=None, rt_str=False):
         s = "The rule list contains {:d} of rules:\n\n     ".format(self.n_rules)

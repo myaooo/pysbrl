@@ -13,14 +13,14 @@ add_executable(sbrl
         bit_vector.h
         pysbrl.h
         utils.h
-        predict.cpp
-        pysbrl.cpp
-        rulelib.cpp
-        sbrlmod.cpp
-        train.cpp
-        utils.cpp
-        save_load.cpp
-        bit_vector.cpp)
+        predict.c
+        pysbrl.c
+        rulelib.c
+        sbrlmod.c
+        train.c
+        utils.c
+        save_load.c
+        bit_vector.c)
 
 find_package(GSL REQUIRED)    # See below (2)
 target_link_libraries(sbrl GSL::gsl GSL::gslcblas)

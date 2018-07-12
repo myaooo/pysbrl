@@ -73,6 +73,8 @@ def categorical2pysbrl_data(
     # data_filename = get_path(_datasets_path, data_name+'.data')
     before_save(data_filename)
     with open(data_filename, 'w') as f:
+        f.write('n_items: %d\n' % len(itemsets))
+        f.write('n_samples: %d\n' % len(y))
         for itemset, data in zip(itemsets, data_by_rule):
             rule_str = '{' + ','.join(itemset) + '}' + '  '
             f.write(rule_str)
@@ -84,6 +86,8 @@ def categorical2pysbrl_data(
     # label_filename = get_path(_datasets_path, data_name+'.label')
     before_save(label_filename)
     with open(label_filename, 'w') as f:
+        f.write('n_items: %d\n' % len(labels))
+        f.write('n_samples: %d\n' % len(y))
         for label in labels:
             f.write('{label=%d} ' % label)
             bits = np.equal(y, label)

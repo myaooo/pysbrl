@@ -23,27 +23,40 @@
  */
 //#define _GNU_SOURCE
 
-#include <cassert>
-#include <cerrno>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include <assert.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <gsl/gsl_rng.h>
 #include "rule.h"
 #include "bit_vector.h"
 #include "utils.h"
 
 
+#ifdef DEBUG
+#define DEBUG_PRINT(msg,...) printf("[%s:%i] "msg, __FILE__, __LINE__, ##__VA_ARGS__);
+#define DEBUG_RUN(code) (code)
+#else
+#define DEBUG_PRINT(msg,...)
+#define DEBUG_RUN(code)
+#endif
+
+
 void
 rules_free(rule_data_t *rules, const int n_rules) {
+    if (rules == NULL)
+        return;
     for (int i = 0; i < n_rules; i++) {
-        bit_vector_free(rules[i].truthtable);
-        free(rules[i].feature_str);
+        if (rules[i].truthtable != NULL)
+            bit_vector_free(rules[i].truthtable);
+        if (rules[i].feature_str != NULL)
+            free(rules[i].feature_str);
     }
     free(rules);
 }
 
-rulelist_t * ruleset_create(int n_alloc, int n_samples = 0) {
+rulelist_t * ruleset_create(int n_alloc, int n_samples) {
     rulelist_t *rs = (rulelist_t *) malloc(sizeof(rulelist_t));
     rs->n_alloc = n_alloc;
     rs->n_rules = 0;
@@ -55,11 +68,13 @@ rulelist_t * ruleset_create(int n_alloc, int n_samples = 0) {
 /* Create a ruleset. */
 rulelist_t *
 ruleset_init(int nrs_rules,
-             int n_samples, int *idarray, rule_data_t *rules) {
+             int n_samples, const int *idarray, rule_data_t *rules) {
     int i;
     rule_data_t *cur_rule;
     rulelist_entry_t *cur_re;
     bit_vector_t *not_captured = bit_vector_init((bit_size_t) n_samples);
+    if (not_captured == NULL)
+        return NULL;
     bit_vector_set_all(not_captured);
     /*
      * Allocate space for the ruleset structure and the ruleset entries.
@@ -70,21 +85,27 @@ ruleset_init(int nrs_rules,
      * Allocate the ruleset at the front of the structure and then
      * the rulelist_entry_t array at the end.
      */
-
+    DEBUG_PRINT("START ITER");
     for (i = 0; i < nrs_rules; i++) {
         cur_rule = rules + idarray[i];
         cur_re = rs->rules + i;
         cur_re->rule_id = (unsigned) (idarray[i]);
 
-        if ((cur_re->captures = bit_vector_init((bit_size_t) n_samples)) == NULL)
+        if ((cur_re->captures = bit_vector_init((bit_size_t) n_samples)) == NULL) {
+            fprintf(stderr, "Error initiating bit_vector\n");
             goto err1;
+        }
         rs->n_rules++;
+        DEBUG_PRINT("%d: \n", i);
         // i.captures = not_captured & truthtable
         bit_vector_and(cur_re->captures, not_captured, cur_rule->truthtable);
+        DEBUG_PRINT("AND ");
         // not_captured = not_captured & (~i.captures)
         bit_vector_and_eq_not(not_captured, cur_re->captures);
+        DEBUG_PRINT("AND_EQ_NOT .");
 
     }
+    DEBUG_PRINT("| End iter\n");
     assert(bit_vector_n_ones(not_captured) == 0);
 
     bit_vector_free(not_captured);
@@ -148,7 +169,7 @@ ruleset_destroy(rulelist_t *rs) {
     free(rs);
 }
 
-#define EXPAND_INC 5
+#define EXPAND_INC 1
 
 /*
  * Add the specified rule to the ruleset at position ndx (shifting
@@ -255,11 +276,14 @@ ruleset_delete(rule_data_t *rules, rulelist_t *rs, int ndx) {
 
     /* Now remove alloc'd data for rule at ndx and for tmp_vec. */
     bit_vector_free(rs->rules[ndx].captures);
+    rs->rules[ndx].captures = NULL;
 
     /* Shift up cells if necessary. */
-    if (ndx != rs->n_rules - 1)
+    if (ndx != rs->n_rules - 1) {
         memmove(rs->rules + ndx, rs->rules + ndx + 1,
                 sizeof(rulelist_entry_t) * (rs->n_rules - 1 - ndx));
+    }
+
 
     rs->n_rules--;
     return 0;

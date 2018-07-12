@@ -19,8 +19,8 @@ include_dirs = ['/usr/local/include', '/usr/include', 'c/']
 
 library_dirs = ['/usr/local/lib', 'usr/lib']
 
-sources = ['c/pysbrl.cpp', 'c/train.cpp', 'c/rulelib.cpp', 'c/save_load.cpp',
-           'c/bit_vector.cpp', 'c/utils.cpp', 'swig/pysbrl_wrap.cpp']
+sources = ['c/pysbrl.c', 'c/train.c', 'c/rulelib.c', 'c/save_load.c',
+           'c/bit_vector.c', 'c/utils.c', 'swig/pysbrl_wrap.c']
 
 pysbrl_module = Extension('_pysbrl',
                           sources=sources,
@@ -28,8 +28,8 @@ pysbrl_module = Extension('_pysbrl',
                           libraries=libraries,
                           library_dirs=library_dirs,
                           swig_opts=['-keyword'],
-                          extra_link_args=["-Bstatic"],
-                          extra_compile_args=['-std=c++98', '-D DEBUG']
+                          extra_link_args=["-static"],
+                          extra_compile_args=['-std=c99']
                           )
 
 

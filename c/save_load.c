@@ -2,8 +2,8 @@
 // Created by Ming Yao on 6/29/18.
 //
 
-#include <cassert>
-#include <cstring>
+#include <assert.h>
+#include <string.h>
 
 #include "rule.h"
 #include "utils.h"
@@ -23,7 +23,6 @@ load_data(const char *data_file, const char *label_file, data_t *data) {
         free(rules);
         return (ret);
     }
-    printf("n_samples %d\n", n_samples);
     assert(samples_chk == n_samples);
     data->rules = rules;
     data->labels = labels;
@@ -79,10 +78,10 @@ load_data(const char *data_file, const char *label_file, data_t *data) {
 
 
 int
-rules_init_from_stream(FILE *fi, int *n_rules, int *n_samples,
+rules_init_from_stream(FILE *fi, int *ret_n_rules, int *ret_n_samples,
                        rule_data_t **rules_ret, int add_default_rule) {
     char *cp, *features, *line, *rulestr, *tmp;
-    int rule_cnt;
+    int rule_cnt, n_rules, n_samples;
     int i, ret;
     rule_data_t *rules = NULL;
     size_t linelen, rulelen;
@@ -97,32 +96,23 @@ rules_init_from_stream(FILE *fi, int *n_rules, int *n_samples,
     linelen = 0;
 
     // Read the first two lines
-    if (_getline(&line, &linelen, fi) > 0) {
-        if (strncmp(line, "n_items:", 8) == 0) {
-            *n_rules = (int) strtol(line + 8, &tmp, 10);
-        } else {
-            fprintf(stderr, "Error: data file mal-format! The first line should be n_items: xxx\n");
-            goto err;
-        }
+    if (_getline(&line, &linelen, fi) > 0 && strncmp(line, "n_items:", 8) == 0) {
+        n_rules = (int) strtol(line + 8, &tmp, 10);
     } else {
         fprintf(stderr, "Error: data file mal-format! The first line should be n_items: xxx\n");
-        goto err;
+        return -1;
     }
-    if (_getline(&line, &linelen, fi) > 0) {
-        if (strncmp(line, "n_samples:", 10) == 0) {
-            *n_samples = (int) strtol(line + 10, &tmp, 10);
-        } else {
-            fprintf(stderr, "Error: data file mal-format! The second line should be n_samples: xxx\n");
-            goto err;
-        }
+
+    if (_getline(&line, &linelen, fi) > 0 && strncmp(line, "n_samples:", 10) == 0) {
+        n_samples = (int) strtol(line + 10, &tmp, 10);
     } else {
         fprintf(stderr, "Error: data file mal-format! The second line should be n_samples: xxx\n");
-        goto err;
+        return -1;
     }
 
-    rules = (rule_data_t *) malloc(*n_rules * sizeof(rule_data_t));
+    rules = (rule_data_t *) malloc(n_rules * sizeof(rule_data_t));
 
-    for (i = 0; i < *n_rules; i++) {
+    for (i = 0; i < n_rules; i++) {
         if ((len = _getline(&line, &linelen, fi)) > 0) {
 
             /* Get the rule string; line will contain the bits. */
@@ -162,14 +152,15 @@ rules_init_from_stream(FILE *fi, int *n_rules, int *n_samples,
     /* Now create the 0'th (default) rule. */
     if (add_default_rule) {
         rules[0].cardinality = 0;
-        if ((rules[0].truthtable = bit_vector_init((unsigned) *n_samples)) == NULL)
+        if ((rules[0].truthtable = bit_vector_init((unsigned) n_samples)) == NULL)
             goto err;
         rules[0].feature_str = _strdup("default");
         bit_vector_flip_all(rules[0].truthtable);
     }
 
     *rules_ret = rules;
-
+    *ret_n_rules = n_rules;
+    *ret_n_samples = n_samples;
     return (0);
 
     err:

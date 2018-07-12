@@ -1,7 +1,5 @@
-#define _GNU_SOURCE
-
-#include <cstdlib>
-#include <cstring>
+#include <stdlib.h>
+#include <string.h>
 #include "pysbrl.h"
 #include "rule.h"
 #include <gsl/gsl_matrix.h>

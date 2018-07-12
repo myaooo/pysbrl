@@ -27,20 +27,20 @@
 
 //#define _GNU_SOURCE
 
-#include <cassert>
-#include <cerrno>
-#include <cfloat>
-#include <cmath>
-#include <cstdio>
-#include <cstring>
-#include <ctime>
+#include <assert.h>
+#include <errno.h>
+#include <float.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include <limits.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_sf.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
-#include <climits>
 #include "mytime.h"
 #include "rule.h"
 #include "utils.h"
@@ -73,7 +73,7 @@ static int card_count[1 + MAX_RULE_CARDINALITY];
 // idx: the length of a rule, val: the count of rules having such length
 
 /* These hold the alpha parameter values to speed up log_gamma lookup. */
-static int alpha_sum, *g_alpha;
+static int alpha_sum;
 // static int a0, a1, a01, alpha_sum;
 
 typedef struct _permute {
@@ -149,7 +149,7 @@ propose(rulelist_t *rs, data_t* train_data,
 
 //    DEBUG_PRINT("Given ruleset: \n");
 //    DEBUG_RUN(ruleset_print(rs, train_data->rules, 0));
-    DEBUG_PRINT("Operation %c(%d)(%d) produced proposal:\n", stepchar, ndx1, ndx2);
+//    DEBUG_PRINT("Operation %c(%d)(%d) produced proposal:\n", stepchar, ndx1, ndx2);
     switch (stepchar) {
     case 'A':
         /* Add the rule whose id is ndx1 at position ndx2 */
@@ -178,17 +178,17 @@ propose(rulelist_t *rs, data_t* train_data,
         train_data, params, change_ndx, &prefix_bound);
 
 //    DEBUG_RUN(ruleset_print(rs_new, train_data->rules, 0));
-    DEBUG_PRINT("With new log_posterior = %0.6f\n", new_log_post);
+//    DEBUG_PRINT("With new log_posterior = %0.6f\n", new_log_post);
     if (prefix_bound < max_log_post)
         (*cnt)++;
 
     if (accept_func(new_log_post, *ret_log_post, prefix_bound, max_log_post, extra)) {
-        DEBUG_PRINT("Accepted\n");
+//        DEBUG_PRINT("Accepted\n");
         rs_ret = rs_new;
         *ret_log_post = new_log_post;
         ruleset_destroy(rs);
     } else {
-        DEBUG_PRINT("Rejected\n");
+//        DEBUG_PRINT("Rejected\n");
         rs_ret = rs;
         ruleset_destroy(rs_new);
     }
@@ -213,8 +213,8 @@ compute_log_gammas(int nsamples, params_t *params)
     // a0 = params->alpha[0];
     // a1 = params->alpha[1];
     // a01 = a0 + a1;
-    g_alpha = params->alpha;
-    alpha_sum = arr_sum(params->n_classes, g_alpha);
+//    g_alpha = params->alpha;
+    alpha_sum = arr_sum(params->n_classes, params->alpha);
 
     max = nsamples + 2 * (1 + alpha_sum);
     g_log_gammas = (double *) malloc(sizeof(double) * max);
@@ -225,7 +225,7 @@ compute_log_gammas(int nsamples, params_t *params)
         g_log_gammas[i] = gsl_sf_lngamma((double)i);
     log_gamma_sum = 0.;
     for (i = 0; i < params->n_classes; i++)
-        log_gamma_sum += g_log_gammas[g_alpha[i]];
+        log_gamma_sum += g_log_gammas[params->alpha[i]];
     
     // printf("max of n: %d\n", max);
     return (0);
@@ -237,8 +237,10 @@ compute_pmf(int nrules, params_t *params)
     int i;
 //    int pmf_size = nrules;
     if (((int) params->lambda) > nrules) {
-        fprintf(stderr, "Error: lambda is %.1f, larger than nrules: %d. Setting lambda to nrules to avoid numerical issues\n", params->lambda, nrules);
-        params->lambda = (double) nrules;
+        fprintf(stderr, "Error: lambda is %.1f, larger than nrules: %d. "
+                        "Setting lambda to %d to avoid numerical issues\n",
+                params->lambda, nrules, nrules - 1);
+        params->lambda = (double) nrules - 1;
 //        pmf_size = nrules+1;
     }
     if ((g_log_lambda_pmf = (double *) malloc(nrules * sizeof(double))) == NULL)
@@ -296,12 +298,19 @@ permute_rules(int nrules)
     int i;
     if ((rule_permutation = (permute_t *) malloc(sizeof(permute_t) * nrules)) == NULL)
         return (-1);
-    for (i = 1; i < nrules; i++) {
+    for (i = 0; i < nrules; i++) {
         rule_permutation[i].val = (int) gsl_rng_get(RAND_GSL);
         rule_permutation[i].ndx = i;
     }
     qsort(rule_permutation, (unsigned) nrules, sizeof(permute_t), permute_cmp);
     permute_ndx = 1;
+#ifdef DEBUG
+    printf("DEBUG permute_rules\n");
+    for (int i = 0; i < nrules; i++) {
+        printf("%d: (%d, %d) ", i, rule_permutation[i].val, rule_permutation[i].ndx);;
+    }
+    printf("\n");
+#endif
     return (0);
 
 }
@@ -310,19 +319,19 @@ void clean_static_resources() {
     /* Free allocated memory. */
     if (g_log_lambda_pmf != NULL)
         free(g_log_lambda_pmf);
-    g_log_lambda_pmf = NULL;
+//    g_log_lambda_pmf = NULL;
     if (g_log_eta_pmf != NULL)
         free(g_log_eta_pmf);
-    g_log_eta_pmf = NULL;
+//    g_log_eta_pmf = NULL;
     if (rule_permutation != NULL)
         free(rule_permutation);
-    rule_permutation = NULL;
+//    rule_permutation = NULL;
     if (g_log_gammas != NULL)
         free(g_log_gammas);
-    g_log_gammas = NULL;
+//    g_log_gammas = NULL;
     if (RAND_GSL != NULL)
         gsl_rng_free(RAND_GSL);
-    RAND_GSL = NULL;
+//    RAND_GSL = NULL;
 }
 
 pred_model_t *
@@ -335,7 +344,7 @@ train(data_t *train_data, params_t *params, long seed, int verbose)
 
     /* initialize random number generator for some distributions. */
     if (verbose > 2)
-        fprintf(stdout, "initializing gsl generator");
+        fprintf(stdout, "Info: initializing gsl generator");
     init_gsl_rand_gen(seed);
 
     pred_model = NULL;
@@ -362,6 +371,7 @@ train(data_t *train_data, params_t *params, long seed, int verbose)
         goto err;
     DEBUG_PRINT("start running mcmc, nchain=%d\n", params->n_chains);
     for (chain = 0; chain < params->n_chains; chain++) {
+        DEBUG_PRINT("\nmcmc %d\n", chain);
         rs_temp = run_mcmc(train_data, params, max_pos);
         if (rs_temp == NULL) {
             // mcmc return null rule set
@@ -429,7 +439,7 @@ get_theta(rulelist_t * rs, rule_data_t * labels, params_t *params)
         // TODO
         for (i = 0; i < params->n_classes; i++) {
             gsl_matrix_set(theta, (unsigned) j, (unsigned) i,
-                (ns[i] + g_alpha[i] * 1.0) / theta_dominator);
+                (ns[i] + params->alpha[i] * 1.0) / theta_dominator);
         }
         gsl_vector_view theta_j = gsl_matrix_row(theta, (unsigned) j);
         max_idx = (int) gsl_vector_max_index(&(theta_j.vector));
@@ -471,6 +481,7 @@ run_mcmc(data_t * train_data, params_t *params, double v_star)
      * Construct rulesets with exactly 2 rules -- one drawn from
      * the permutation and the default rule.
      */
+    rarray[0] = 1;
     rarray[1] = 0;
     count = 0;
     while (prefix_bound < v_star) {
@@ -486,32 +497,45 @@ run_mcmc(data_t * train_data, params_t *params, double v_star)
         rarray[0] = rule_permutation[permute_ndx++].ndx;
         if (permute_ndx >= train_data->n_rules)
             permute_ndx = 1;
+        DEBUG_PRINT("MCMC permutation before init %d, permute_ndx: %d, rarray[0]: %d.\n", count, permute_ndx, rarray[0]);
         rs = ruleset_init(2, train_data->n_samples, rarray, train_data->rules);
+        DEBUG_PRINT("MCMC permutation after init %d.\n", count);
+        if (rs == NULL) continue;
         log_post_rs = compute_log_posterior(rs, train_data, params, 1, &prefix_bound);
+        DEBUG_PRINT("MCMC permutation after compute log posterior %d.\n", count);
     }
+    DEBUG_PRINT("MCMC permutation loop complete.\n");
 
     /*
      * The initial ruleset is our best ruleset so far, so keep a
      * list of the rules it contains.
      */
-    if (ruleset_backup(rs, &rs_idarray) != 0)
+    if (ruleset_backup(rs, &rs_idarray) != 0) {
+        DEBUG_PRINT("MCMC errored backup.\n");
         goto err;
+    }
     max_log_posterior = log_post_rs;
     len = rs->n_rules;
 
     for (i = 0; i < params->iters; i++) {
         if ((rs = propose(rs, train_data, &jump_prob,
             &log_post_rs, max_log_posterior, &nsuccessful_rej,
-            &jump_prob, params, mcmc_accepts)) == NULL)
-                goto err;
+            &jump_prob, params, mcmc_accepts)) == NULL) {
+            DEBUG_PRINT("MCMC errored 1.\n");
+            goto err;
+
+        }
 
         if (log_post_rs > max_log_posterior) {
-            if (ruleset_backup(rs, &rs_idarray) != 0)
+            if (ruleset_backup(rs, &rs_idarray) != 0) {
+                DEBUG_PRINT("MCMC errored 2.\n");
                 goto err;
+            }
             max_log_posterior = log_post_rs;
             len = rs->n_rules;
         }
     }
+    DEBUG_PRINT("MCMC max iter arrived.\n");
 
     /* Regenerate the best rule list */
     ruleset_destroy(rs);
@@ -526,7 +550,7 @@ run_mcmc(data_t * train_data, params_t *params, double v_star)
     printf("max_log_posterior = %6f\n", max_log_posterior);
     printf("max_log_posterior = %6f\n",
         compute_log_posterior(rs, train_data, params, -1, &prefix_bound));
-    ruleset_print(rs, train_data->rules, 0);
+//    ruleset_print(rs, train_data->rules, 0);
 #endif
     return (rs);
 
@@ -668,7 +692,7 @@ compute_log_posterior(const rulelist_t *rs, data_t * train_data,
         // printf("log_gammas:");
         for (i = 0; i < params->n_classes; i++) {
             // printf(" %d %.6f;", ns[i], log_gammas[ns[i]+alpha[i]]);
-            _log_likelihood += g_log_gammas[ns[i]+g_alpha[i]];
+            _log_likelihood += g_log_gammas[ns[i]+params->alpha[i]];
         }
         // printf("\n");
         _log_likelihood -= g_log_gammas[arr_sum(params->n_classes, ns) + alpha_sum];
@@ -679,8 +703,8 @@ compute_log_posterior(const rulelist_t *rs, data_t * train_data,
             if (j == (length4bound - 1)) {
                 for (i = 0; i < params->n_classes; i++) {
                     prefix_log_likelihood += 
-                        log_gamma_sum - g_log_gammas[g_alpha[i]] +
-                        g_log_gammas[supports[i] + g_alpha[i]]
+                        log_gamma_sum - g_log_gammas[params->alpha[i]] +
+                        g_log_gammas[supports[i] + params->alpha[i]]
                         - g_log_gammas[supports[i] + alpha_sum];
                 }
             }
@@ -795,9 +819,9 @@ init_gsl_rand_gen(long seed)
     if (seed < 0) {
         seed = time(NULL);
     }
-    gsl_rng_env_setup();
-    if (RAND_GSL != NULL)
-        gsl_rng_free(RAND_GSL);
+//    gsl_rng_env_setup();
+//    if (RAND_GSL != NULL)
+//        gsl_rng_free(RAND_GSL);
     RAND_GSL = gsl_rng_alloc(gsl_rng_default);
     gsl_rng_set(RAND_GSL, (unsigned long) seed);
 

@@ -2,10 +2,10 @@
 // Created by Ming Yao on 7/5/18.
 //
 
-#include <cstdio>
-#include <cstdlib>
-#include <cerrno>
-#include <cstring>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
 #include "bit_vector.h"
 
 /* One-counting tools */
@@ -151,7 +151,7 @@ void bit_vector_copy(bit_vector_t *dest, const bit_vector_t* src) {
 #define bit_vector_func_def_2ops(name, op) \
 void name(bit_vector_t *dest, const bit_vector_t *src) { \
     for (bit_size_t i = 0; i < src->n_words; i++) { \
-        op(dest->words[i], (src->words[i])); \
+        op((dest->words[i]), (src->words[i])); \
     } \
     dest->n_ones = -1; \
 }
@@ -159,7 +159,7 @@ void name(bit_vector_t *dest, const bit_vector_t *src) { \
 #define bit_vector_func_def_3ops(name, op) \
 void name(bit_vector_t *dest, const bit_vector_t *src1, const bit_vector_t *src2) { \
     for (bit_size_t i = 0; i < src1->n_words; i++) { \
-        op(dest->words[i], (src1->words[i]), (src2->words[i])); \
+        op((dest->words[i]), (src1->words[i]), (src2->words[i])); \
     } \
     dest->n_ones = -1; \
 }
@@ -317,14 +317,14 @@ count_word_ones(word_t word) {
 
 bit_size_t count_bit_vector_ones(const bit_vector_t *vec) {
     bit_size_t count = 0;
-    for (int i = 0; i < vec->n_words; i++) {
+    for (bit_size_t i = 0; i < vec->n_words; i++) {
         count += count_word_ones(vec->words[i]);
     }
     return count;
 }
 
 int bit_vector_first_set(bit_vector_t * bitvec, int start_pos) {
-    for (int i = start_pos; i < bitvec->n_bits; i++) {
+    for (bit_size_t i = start_pos; i < bitvec->n_bits; i++) {
         if (bit_vector_get(bitvec->words, i) != 0)
             return i;
     }
@@ -334,8 +334,7 @@ int bit_vector_first_set(bit_vector_t * bitvec, int start_pos) {
 
 void
 bit_vector_print(bit_vector_t *v) {
-    int i;
-    for (i = 0; i < v->n_words; i++)
+    for (bit_size_t i = 0; i < v->n_words; i++)
         printf("0x%llx ", v->words[i]);
     printf("\n");
 }

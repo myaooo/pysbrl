@@ -339,7 +339,7 @@ int bit_vector_first_set(bit_vector_t * bitvec, int start_pos) {
 void
 bit_vector_print(bit_vector_t *v) {
     for (bit_size_t i = 0; i < v->n_words; i++)
-        printf("0x%llx ", v->words[i]);
+        printf("0x%llx ", (unsigned long long)v->words[i]);
     printf("\n");
 }
 

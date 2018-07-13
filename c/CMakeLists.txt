@@ -19,8 +19,7 @@ add_executable(sbrl
         train.c
         utils.c
         save_load.c
-        bit_vector.c
-        test.c)
+        bit_vector.c)
 
 find_package(GSL REQUIRED)    # See below (2)
 target_link_libraries(sbrl GSL::gsl GSL::gslcblas)

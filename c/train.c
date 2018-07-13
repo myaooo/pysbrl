@@ -88,6 +88,7 @@ double compute_log_posterior(const rulelist_t *, data_t *, params_t *, int, doub
 gsl_matrix *get_theta(rulelist_t *, rule_data_t *, params_t *);
 //void gsl_ran_poisson_test();
 void init_gsl_rand_gen(long seed);
+int clean_static_resources(void);
 
 #define MAX(x, y) ((x) < (y) ? (y) : (x))
 
@@ -315,7 +316,7 @@ permute_rules(int nrules)
 
 }
 
-void clean_static_resources() {
+int clean_static_resources(void) {
     /* Free allocated memory. */
     if (g_log_lambda_pmf != NULL)
         free(g_log_lambda_pmf);
@@ -331,6 +332,7 @@ void clean_static_resources() {
 //    g_log_gammas = NULL;
     if (RAND_GSL != NULL)
         gsl_rng_free(RAND_GSL);
+    return 1;
 //    RAND_GSL = NULL;
 }
 

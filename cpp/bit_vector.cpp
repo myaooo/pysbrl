@@ -3,10 +3,9 @@
 //
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <errno.h>
+#include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include "bit_vector.h"
 
 /* One-counting tools */
@@ -151,7 +150,6 @@ void bit_vector_copy(bit_vector_t *dest, const bit_vector_t* src) {
 
 #define bit_vector_func_def_2ops(name, op) \
 void name(bit_vector_t *dest, const bit_vector_t *src) { \
-    assert(src->n_words <= dest->n_words);\
     for (bit_size_t i = 0; i < src->n_words; i++) { \
         op((dest->words[i]), (src->words[i])); \
     } \
@@ -160,8 +158,6 @@ void name(bit_vector_t *dest, const bit_vector_t *src) { \
 
 #define bit_vector_func_def_3ops(name, op) \
 void name(bit_vector_t *dest, const bit_vector_t *src1, const bit_vector_t *src2) { \
-    assert(src1->n_words <= dest->n_words);\
-    assert(src1->n_words <= src2->n_words);\
     for (bit_size_t i = 0; i < src1->n_words; i++) { \
         op((dest->words[i]), (src1->words[i]), (src2->words[i])); \
     } \

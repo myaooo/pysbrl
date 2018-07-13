@@ -5,10 +5,10 @@ from mdlp.discretization import MDLP
 
 
 def test_train_sbrl():
-    rule_ids, outputs, rule_strings = train_sbrl('./c/data/ttt_train.out', './c/data/ttt_train.label',
+    rule_ids, outputs, rule_strings = train_sbrl('./data/ttt_train.out', './data/ttt_train.label',
                                                  max_iters=10000, verbose=1)
     # Test for a second run
-    rule_ids, outputs, rule_strings = train_sbrl('./c/data/ttt_train.out', './c/data/ttt_train.label',
+    rule_ids, outputs, rule_strings = train_sbrl('./data/ttt_train.out', './data/ttt_train.label',
                                                  max_iters=10000, verbose=0)
 
 

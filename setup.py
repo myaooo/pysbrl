@@ -28,7 +28,7 @@ pysbrl_module = Extension('_pysbrl',
                           libraries=libraries,
                           library_dirs=library_dirs,
                           swig_opts=['-keyword'],
-                          extra_link_args=["-shared"],
+                          # extra_link_args=["-shared"],
                           extra_compile_args=['-std=c99']
                           )
 

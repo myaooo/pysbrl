@@ -29,6 +29,7 @@ typedef struct bit_vector {
 // Creators and Destroyers
 bit_vector_t * bit_vector_init(bit_size_t nbits);
 void bit_vector_free(bit_vector_t *vec);
+void bit_vector_dealloc(bit_vector_t *vec);
 
 // Resize
 
@@ -43,7 +44,7 @@ bit_vector_t* bit_vector_clone(const bit_vector_t* bitarr);
 void bit_vector_copy(bit_vector_t *dest, const bit_vector_t* src);
 
 // Print
-void bit_vector_print(bit_vector_t *vec);
+void bit_vector_print(const bit_vector_t *vec);
 bit_vector_t* bit_vector_from_str(const char *str, int len);
 bit_vector_t* bit_vector_from_bytes(const char *bytes, bit_size_t len);
 

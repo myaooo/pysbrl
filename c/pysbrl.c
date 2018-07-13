@@ -32,7 +32,7 @@ int train_sbrl(const char *data_file, const char *label_file,
     params.iters = max_iters;
     params.n_chains = nchain;
     params.n_classes = n_classes;
-    params.alpha = (int *) malloc(sizeof(int) * n_classes);
+    params.alpha = malloc(n_classes * sizeof(int));
     if (n_alpha != n_classes) {
         if (n_alpha != 1) {
             fprintf(stderr, "Error: Expect to have %d alphas, but received %d. Using the first alpha to fill all alphas...\n", n_classes, n_alpha);
@@ -56,9 +56,9 @@ int train_sbrl(const char *data_file, const char *label_file,
     if (verbose > 1)
         fprintf(stdout, "INFO: Preparing outputs\n");
     rulelist_t * rs = model->rs;
-    int * rule_ids = (int *) malloc(rs->n_rules * sizeof(int));
-    double * probs = (double *) malloc(rs->n_rules * n_classes * sizeof(double));
-    char ** feature_lists = (char **) malloc(data.n_rules * sizeof(char *));
+    int * rule_ids = malloc(rs->n_rules * sizeof(int));
+    double * probs = malloc(rs->n_rules * n_classes * sizeof(double));
+    char ** feature_lists = malloc(data.n_rules * sizeof(char *));
 
     for (int i = 0; i < rs->n_rules; i++) {
         rule_ids[i] = rs->rules[i].rule_id;

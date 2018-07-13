@@ -110,7 +110,7 @@ rules_init_from_stream(FILE *fi, int *ret_n_rules, int *ret_n_samples,
         return -1;
     }
 
-    rules = (rule_data_t *) malloc(n_rules * sizeof(rule_data_t));
+    rules = calloc((unsigned) n_rules, sizeof(rule_data_t));
 
     for (i = 0; i < n_rules; i++) {
         if ((len = _getline(&line, &linelen, fi)) > 0) {
@@ -152,7 +152,7 @@ rules_init_from_stream(FILE *fi, int *ret_n_rules, int *ret_n_samples,
     /* Now create the 0'th (default) rule. */
     if (add_default_rule) {
         rules[0].cardinality = 0;
-        if ((rules[0].truthtable = bit_vector_init((unsigned) n_samples)) == NULL)
+        if ((rules[0].truthtable = bit_vector_init((bit_size_t) n_samples)) == NULL)
             goto err;
         rules[0].feature_str = _strdup("default");
         bit_vector_flip_all(rules[0].truthtable);
@@ -168,10 +168,7 @@ rules_init_from_stream(FILE *fi, int *ret_n_rules, int *ret_n_samples,
 
     /* Reclaim space. */
     if (rules != NULL) {
-        for (i = 1; i < rule_cnt; i++) {
-            bit_vector_free(rules[i].truthtable);
-        }
-        free(rules);
+        rules_free(rules, n_rules);
     }
     // (void)fclose(fi);
     return (ret);

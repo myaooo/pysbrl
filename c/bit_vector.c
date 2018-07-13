@@ -57,7 +57,7 @@ static inline void _mask_top_word(bit_vector_t *bitvec) {
 
 // all bits set to 0
 bit_vector_t *bit_vector_init(bit_size_t nbits) {
-    bit_vector_t *ret = (bit_vector_t *)malloc(sizeof(bit_vector_t));
+    bit_vector_t *ret = malloc(sizeof(bit_vector_t));
 
     ret->n_bits = nbits;
     ret->n_words = nbits2nwords(nbits);
@@ -73,8 +73,14 @@ bit_vector_t *bit_vector_init(bit_size_t nbits) {
 
 void bit_vector_free(bit_vector_t *vec) {
     if (vec == NULL) return;
-    free(vec->words);
+    if (vec->words != NULL)
+        free(vec->words);
     free(vec);
+}
+
+void bit_vector_dealloc(bit_vector_t *vec) {
+    free(vec->words);
+    memset(vec, 0, sizeof(bit_vector_t));
 }
 
 //
@@ -91,7 +97,7 @@ char bit_vector_resize(bit_vector_t *bitvec, bit_size_t new_n_bits) {
 
     if (new_n_words > bitvec->n_words) {
         // Need to change the amount of memory used
-        bitvec->words = (word_t *) realloc(bitvec->words, bitvec->n_words * sizeof(word_t));
+        bitvec->words = realloc(bitvec->words, new_n_words * sizeof(word_t));
 
         if (bitvec->words == NULL) {
             // error - could not allocate enough memory
@@ -142,7 +148,7 @@ bit_vector_t* bit_vector_clone(const bit_vector_t* src) {
 
 void bit_vector_copy(bit_vector_t *dest, const bit_vector_t* src) {
     bit_vector_resize_critical(dest, src->n_bits);
-    memcpy(dest->words, src->words, src->n_words * sizeof(word_t));
+    memmove(dest->words, src->words, src->n_words * sizeof(word_t));
 }
 
 //
@@ -215,7 +221,7 @@ void bit_vector_or_safe(bit_vector_t *dest, const bit_vector_t *src1, const bit_
     }
     if (min_words != max_words) {
         const bit_vector_t * longer = src1->n_words > src2->n_words ? src1 : src2;
-        memcpy(dest->words + min_words, longer->words + min_words, (max_words - min_words) * sizeof(word_t));
+        memmove(dest->words + min_words, longer->words + min_words, (max_words - min_words) * sizeof(word_t));
     }
 
     // Set remaining bits to zero
@@ -235,7 +241,7 @@ void bit_vector_xor_safe(bit_vector_t *dest, const bit_vector_t *src1, const bit
     }
     if (min_words != max_words) {
         const bit_vector_t * longer = src1->n_words > src2->n_words ? src1 : src2;
-        memcpy(dest->words + min_words, longer->words + min_words, (max_words - min_words) * sizeof(word_t));
+        memmove(dest->words + min_words, longer->words + min_words, (max_words - min_words) * sizeof(word_t));
     }
 
     // Set remaining bits to zero
@@ -337,7 +343,7 @@ int bit_vector_first_set(bit_vector_t * bitvec, int start_pos) {
 
 
 void
-bit_vector_print(bit_vector_t *v) {
+bit_vector_print(const bit_vector_t *v) {
     for (bit_size_t i = 0; i < v->n_words; i++)
         printf("0x%llx ", (unsigned long long)v->words[i]);
     printf("\n");

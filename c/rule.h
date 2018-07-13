@@ -71,13 +71,13 @@
 typedef struct rule_data {
     int cardinality;
     char *feature_str;
-    bit_vector_t *truthtable;
+    bit_vector_t * truthtable;
 } rule_data_t;
 
 
 typedef struct rulelist_entry {
 	unsigned rule_id;
-    bit_vector_t *captures;
+    bit_vector_t * captures;
 } rulelist_entry_t;
 
 typedef struct rulelist {

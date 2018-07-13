@@ -48,6 +48,7 @@ rules_free(rule_data_t *rules, const int n_rules) {
     if (rules == NULL)
         return;
     for (int i = 0; i < n_rules; i++) {
+//        bit_vector_dealloc(&(rules[i].truthtable));
         if (rules[i].truthtable != NULL)
             bit_vector_free(rules[i].truthtable);
         if (rules[i].feature_str != NULL)
@@ -57,11 +58,11 @@ rules_free(rule_data_t *rules, const int n_rules) {
 }
 
 rulelist_t * ruleset_create(int n_alloc, int n_samples) {
-    rulelist_t *rs = (rulelist_t *) malloc(sizeof(rulelist_t));
+    rulelist_t *rs = malloc(sizeof(rulelist_t));
     rs->n_alloc = n_alloc;
     rs->n_rules = 0;
     rs->n_samples = n_samples;
-    rs->rules = (rulelist_entry_t *) malloc(sizeof(rulelist_entry_t) * n_alloc);
+    rs->rules = malloc(n_alloc * sizeof(rulelist_entry_t));
     return rs;
 }
 
@@ -128,7 +129,7 @@ ruleset_backup(rulelist_t *rs, int **rs_idarray) {
     int i;
     int *ids = *rs_idarray;
 
-    if ((ids = (int *) realloc(ids, (rs->n_rules * sizeof(int)))) == NULL)
+    if ((ids = realloc(ids, (rs->n_rules * sizeof(int)))) == NULL)
         return (errno);
 
     for (i = 0; i < rs->n_rules; i++)
@@ -186,13 +187,14 @@ ruleset_add(rule_data_t *rules, rulelist_t **rsp, int newrule, int ndx) {
 
     /* Check for space. */
     if (rs->n_alloc < rs->n_rules + 1) {
-        rs->rules = (rulelist_entry_t *) realloc(rs->rules,
-                (rs->n_rules + EXPAND_INC) * sizeof(rulelist_entry_t));
+        rs->rules = realloc(rs->rules,
+                (rs->n_alloc + EXPAND_INC) * sizeof(rulelist_entry_t));
+        assert(rs->rules != NULL);
 //        expand = realloc(rs, sizeof(rulelist_t) +
 //                             (rs->n_rules + 1) * sizeof(rulelist_entry_t));
 //        if (expand == NULL)
 //            return (errno);
-        rs->n_alloc = rs->n_rules + EXPAND_INC;
+        rs->n_alloc = rs->n_alloc + EXPAND_INC;
         *rsp = rs;
     }
 
@@ -214,7 +216,7 @@ ruleset_add(rule_data_t *rules, rulelist_t **rsp, int newrule, int ndx) {
      */
     if (ndx != rs->n_rules) {
         memmove(rs->rules + (ndx + 1), rs->rules + ndx,
-                sizeof(rulelist_entry_t) * (rs->n_rules - ndx));
+                (rs->n_rules - ndx) * sizeof(rulelist_entry_t));
     }
 
     /* Insert and initialize the new rule. */
@@ -276,14 +278,12 @@ ruleset_delete(rule_data_t *rules, rulelist_t *rs, int ndx) {
 
     /* Now remove alloc'd data for rule at ndx and for tmp_vec. */
     bit_vector_free(rs->rules[ndx].captures);
-    rs->rules[ndx].captures = NULL;
 
     /* Shift up cells if necessary. */
     if (ndx != rs->n_rules - 1) {
         memmove(rs->rules + ndx, rs->rules + ndx + 1,
-                sizeof(rulelist_entry_t) * (rs->n_rules - 1 - ndx));
+                (rs->n_rules - 1 - ndx) * sizeof(rulelist_entry_t));
     }
-
 
     rs->n_rules--;
     return 0;
@@ -298,7 +298,7 @@ create_random_ruleset(int size,
                       int n_samples, int n_rules, rule_data_t *rules) {
     int i, j, next;
     rulelist_t * ret;
-    int *ids = (int *) calloc((unsigned) size, sizeof(int));
+    int *ids = calloc((unsigned) size, sizeof(int));
     for (i = 0; i < (size - 1); i++) {
         try_again:
         next = RANDOM_RANGE(1, (n_rules - 1));
@@ -325,14 +325,14 @@ create_random_ruleset(int size,
  */
 void
 ruleset_swap(rulelist_t *rs, int i, int j, rule_data_t *rules) {
-    bit_vector_t *tmp_vec;
+//    bit_vector_t *tmp_vec;
     rulelist_entry_t re;
 
     assert(i < (rs->n_rules - 1));
     assert(j < (rs->n_rules - 1));
     assert(i + 1 == j);
 
-    tmp_vec = bit_vector_init((bit_size_t) rs->n_samples);
+//    tmp_vec = bit_vector_init((bit_size_t) rs->n_samples);
 
     /* j.captures = j.captures | (i.captures & j.tt) */
     /* tmp_vec =  i.captures & j.tt */
@@ -350,7 +350,7 @@ ruleset_swap(rulelist_t *rs, int i, int j, rule_data_t *rules) {
     rs->rules[i] = rs->rules[j];
     rs->rules[j] = re;
 
-    bit_vector_free(tmp_vec);
+//    bit_vector_free(tmp_vec);
 }
 
 void

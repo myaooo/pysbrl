@@ -218,10 +218,12 @@ compute_log_gammas(int nsamples, params_t *params)
     alpha_sum = arr_sum(params->n_classes, params->alpha);
 
     max = nsamples + 2 * (1 + alpha_sum);
-    g_log_gammas = (double *) malloc(sizeof(double) * max);
+    printf("max: %d\n", max);
+    g_log_gammas = malloc(max * sizeof(double));
     if (g_log_gammas == NULL)
         return (-1);
 
+    g_log_gammas[0] = -1e-20;
     for (i = 1; i < max; i++)
         g_log_gammas[i] = gsl_sf_lngamma((double)i);
     log_gamma_sum = 0.;
@@ -244,14 +246,14 @@ compute_pmf(int nrules, params_t *params)
         params->lambda = (double) nrules - 1;
 //        pmf_size = nrules+1;
     }
-    if ((g_log_lambda_pmf = (double *) malloc(nrules * sizeof(double))) == NULL)
+    if ((g_log_lambda_pmf = malloc(nrules * sizeof(double))) == NULL)
         return (errno);
     for (i = 0; i < nrules; i++) {
         g_log_lambda_pmf[i] = log(gsl_ran_poisson_pdf((unsigned) i, params->lambda));
 //        printf("g_log_lambda_pmf[ %d ] = %6f\n", i, g_log_lambda_pmf[i]);
     }
 
-    if ((g_log_eta_pmf = (double *) malloc((1 + MAX_RULE_CARDINALITY) * sizeof(double))) == NULL)
+    if ((g_log_eta_pmf = malloc((1 + MAX_RULE_CARDINALITY) * sizeof(double))) == NULL)
         return (errno);
     for (i = 0; i <= MAX_RULE_CARDINALITY; i++) {
         g_log_eta_pmf[i] = log(gsl_ran_poisson_pdf((unsigned) i, params->eta));
@@ -297,7 +299,7 @@ int
 permute_rules(int nrules)
 {
     int i;
-    if ((rule_permutation = (permute_t *) malloc(sizeof(permute_t) * nrules)) == NULL)
+    if ((rule_permutation = malloc(sizeof(permute_t) * nrules)) == NULL)
         return (-1);
     for (i = 0; i < nrules; i++) {
         rule_permutation[i].val = (int) gsl_rng_get(RAND_GSL);
@@ -320,20 +322,20 @@ int clean_static_resources(void) {
     /* Free allocated memory. */
     if (g_log_lambda_pmf != NULL)
         free(g_log_lambda_pmf);
-//    g_log_lambda_pmf = NULL;
+    g_log_lambda_pmf = NULL;
     if (g_log_eta_pmf != NULL)
         free(g_log_eta_pmf);
-//    g_log_eta_pmf = NULL;
+    g_log_eta_pmf = NULL;
     if (rule_permutation != NULL)
         free(rule_permutation);
-//    rule_permutation = NULL;
+    rule_permutation = NULL;
     if (g_log_gammas != NULL)
         free(g_log_gammas);
-//    g_log_gammas = NULL;
+    g_log_gammas = NULL;
     if (RAND_GSL != NULL)
         gsl_rng_free(RAND_GSL);
+    RAND_GSL = NULL;
     return 1;
-//    RAND_GSL = NULL;
 }
 
 pred_model_t *
@@ -360,7 +362,7 @@ train(data_t *train_data, params_t *params, long seed, int verbose)
     if (compute_log_gammas(train_data->n_samples, params) != 0)
         goto err;
 
-    if ((pred_model = (pred_model_t *) calloc(1, sizeof(pred_model_t))) == NULL)
+    if ((pred_model = calloc(1, sizeof(pred_model_t))) == NULL)
         goto err;
 
     default_rule = 0;
@@ -426,7 +428,7 @@ get_theta(rulelist_t * rs, rule_data_t * labels, params_t *params)
     // theta = malloc(rs->n_rules * sizeof(double));
     gsl_matrix * theta = gsl_matrix_alloc((unsigned)(rs->n_rules), (unsigned)(params->n_classes));
     // printf("theta allocated\n");
-    int * ns = (int *) malloc(params->n_classes * sizeof(int));
+    int * ns = malloc(params->n_classes * sizeof(int));
     if (theta == NULL)
         return (NULL);
 
@@ -675,8 +677,8 @@ compute_log_posterior(const rulelist_t *rs, data_t * train_data,
     }
 
     /* Calculate log_likelihood */
-    int * supports = (int *) malloc(params->n_classes * sizeof(int));
-    int * ns = (int *) malloc(params->n_classes * sizeof(int));
+    int * supports = malloc(params->n_classes * sizeof(int));
+    int * ns = malloc(params->n_classes * sizeof(int));
     for (i = 0; i < params->n_classes; i++) {
         supports[i] = bit_vector_n_ones(train_data->labels[i].truthtable);
     }

@@ -47,12 +47,14 @@ void
 rules_free(rule_data_t *rules, const int n_rules) {
     if (rules == NULL)
         return;
+    rule_data_t * cur_rule;
     for (int i = 0; i < n_rules; i++) {
+        cur_rule = rules + i;
 //        bit_vector_dealloc(&(rules[i].truthtable));
-        if (rules[i].truthtable != NULL)
-            bit_vector_free(rules[i].truthtable);
-        if (rules[i].feature_str != NULL)
-            free(rules[i].feature_str);
+        if (cur_rule->truthtable != NULL)
+            bit_vector_free(cur_rule->truthtable);
+        if (cur_rule->feature_str != NULL)
+            free(cur_rule->feature_str);
     }
     free(rules);
 }

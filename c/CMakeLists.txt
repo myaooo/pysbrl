@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 2.8)
 project(sbrl)
 
 #set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}")
@@ -24,4 +24,4 @@ add_executable(sbrl
         )
 
 find_package(GSL REQUIRED)    # See below (2)
-target_link_libraries(sbrl GSL::gsl GSL::gslcblas)
+target_link_libraries(sbrl -lm GSL::gsl GSL::gslcblas)

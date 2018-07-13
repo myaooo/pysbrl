@@ -82,7 +82,7 @@ int
 rules_init_from_stream(FILE *fi, int *ret_n_rules, int *ret_n_samples,
                        rule_data_t **rules_ret, int add_default_rule) {
     char *cp, *features, *rulestr;
-    int rule_cnt;
+//    int rule_cnt;
     int n_rules = 0, n_samples = 0, i;
     long tmpl;
     int ret;
@@ -96,7 +96,8 @@ rules_init_from_stream(FILE *fi, int *ret_n_rules, int *ret_n_samples,
      * Leave a space for the 0th (default) rule, which we'll add at
      * the end.
      */
-    rule_cnt = add_default_rule != 0 ? 1 : 0;
+    add_default_rule = add_default_rule ? 1 : 0;
+//    rule_cnt = add_default_rule != 0 ? 1 : 0;
 
     // Read the first two lines
     if (fgets(buffer, buffer_size, fi) == NULL || strncmp(buffer, "n_items:", 8)!= 0) {
@@ -119,7 +120,7 @@ rules_init_from_stream(FILE *fi, int *ret_n_rules, int *ret_n_samples,
         goto err;
     }
     n_samples = (int) tmpl;
-    rules = calloc((unsigned long) n_rules, sizeof(rule_data_t));
+    rules = calloc((unsigned long) (n_rules + add_default_rule), sizeof(rule_data_t));
 
     buffer_size = (unsigned) n_samples * 3 + 100;
     buffer = realloc(buffer, buffer_size * sizeof(char));
@@ -148,17 +149,16 @@ rules_init_from_stream(FILE *fi, int *ret_n_rules, int *ret_n_samples,
         features = end+1;
         *end = '\0';
         rulestr = buffer;
-        if ((rules[rule_cnt].feature_str = _strdup(rulestr)) == NULL)
+        if ((rules[i + add_default_rule].feature_str = _strdup(rulestr)) == NULL)
             goto err;
 
-        if ((rules[rule_cnt].truthtable = bit_vector_from_str(features)) == NULL)
+        if ((rules[i + add_default_rule].truthtable = bit_vector_from_str(features)) == NULL)
             goto err;
 
-        rules[rule_cnt].cardinality = 1;
+        rules[i + add_default_rule].cardinality = 1;
         for (cp = rulestr; *cp != '\0'; cp++)
             if (*cp == ',')
-                rules[rule_cnt].cardinality++;
-        rule_cnt++;
+                rules[i + add_default_rule].cardinality++;
 
     }
 
@@ -172,7 +172,7 @@ rules_init_from_stream(FILE *fi, int *ret_n_rules, int *ret_n_samples,
     }
 
     *rules_ret = rules;
-    *ret_n_rules = n_rules;
+    *ret_n_rules = n_rules + add_default_rule;
     *ret_n_samples = n_samples;
     return (0);
 

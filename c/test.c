@@ -118,6 +118,9 @@ main (int argc, char *argv[])
     if ((ret = load_data(argv[0], argv[1], &train_data)) != 0) {
         return (ret);
     }
+    for (int k = 0; k < train_data.n_rules; k++) {
+        rule_print(train_data.rules, k, 0);
+    }
     params.alpha = (int *) malloc(train_data.n_classes * sizeof(int));
     for (i = 0; i < train_data.n_classes; i++) {
         params.alpha[i] = alpha;

@@ -87,7 +87,6 @@ double compute_log_posterior(const rulelist_t *, data_t *, params_t *, int, doub
 //int gen_poission(double);
 gsl_matrix *get_theta(rulelist_t *, rule_data_t *, params_t *);
 //void gsl_ran_poisson_test();
-void init_gsl_rand_gen(long seed);
 int clean_static_resources(void);
 
 #define MAX(x, y) ((x) < (y) ? (y) : (x))
@@ -218,7 +217,6 @@ compute_log_gammas(int nsamples, params_t *params)
     alpha_sum = arr_sum(params->n_classes, params->alpha);
 
     max = nsamples + 2 * (1 + alpha_sum);
-    printf("max: %d\n", max);
     g_log_gammas = malloc(max * sizeof(double));
     if (g_log_gammas == NULL)
         return (-1);
@@ -353,12 +351,12 @@ train(data_t *train_data, params_t *params, long seed, int verbose)
 
     pred_model = NULL;
     rs = NULL;
-    if (verbose > 2)
-        fprintf(stdout, "computing pmf");
+    VERBOSE3_PRINTF(stdout, "computing pmf");
     if (compute_pmf(train_data->n_rules, params) != 0)
         goto err;
+    VERBOSE3_PRINTF(stdout, "counting cardinalities");
     count_cardinality(train_data->n_rules, train_data->rules);
-
+    VERBOSE3_PRINTF(stdout, "computing log gammas");
     if (compute_log_gammas(train_data->n_samples, params) != 0)
         goto err;
 
@@ -373,9 +371,12 @@ train(data_t *train_data, params_t *params, long seed, int verbose)
     max_pos = compute_log_posterior(rs, train_data, params, -1, &null_bound);
     if (permute_rules(train_data->n_rules) != 0)
         goto err;
-    DEBUG_PRINT("start running mcmc, nchain=%d\n", params->n_chains);
+    VERBOSE0_PRINTF(stdout, "Start running MCMCs, n_chain=%d\n", params->n_chains);
     for (chain = 0; chain < params->n_chains; chain++) {
-        DEBUG_PRINT("\nmcmc %d\n", chain);
+        if (verbose) {
+            fprintf(stdout, ".");
+            fflush(stdout);
+        }
         rs_temp = run_mcmc(train_data, params, max_pos);
         if (rs_temp == NULL) {
             // mcmc return null rule set
@@ -390,6 +391,8 @@ train(data_t *train_data, params_t *params, long seed, int verbose)
             ruleset_destroy(rs_temp);
         }
     }
+    if (verbose)
+        fprintf(stdout, "\n");
 
     // after nchain runs, no available rule set is founded.
     if (rs == NULL)

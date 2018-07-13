@@ -57,6 +57,11 @@ rules_free(rule_data_t *rules, const int n_rules) {
     free(rules);
 }
 
+void data_free(data_t * data) {
+    rules_free(data->rules, data->n_rules);
+    rules_free(data->labels, data->n_classes);
+}
+
 rulelist_t * ruleset_create(int n_alloc, int n_samples) {
     rulelist_t *rs = malloc(sizeof(rulelist_t));
     rs->n_alloc = n_alloc;

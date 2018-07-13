@@ -195,8 +195,8 @@ class BayesianRuleList(object):
         start = time.time()
         raw_rules = categorical2pysbrl_data(x, y, data_file.name, label_file.name, supp=self.min_support,
                                             zmin=self.min_rule_len, zmax=self.max_rule_len, method=self.fim_method)
-        if verbose:
-            print("sbrl data files saved to %s and %s temporarily" % (data_file.name, label_file.name))
+        if verbose > 1:
+            print("Info: sbrl data files saved to %s and %s temporarily" % (data_file.name, label_file.name))
         data_file.close()
         label_file.close()
         cat_time = time.time() - start

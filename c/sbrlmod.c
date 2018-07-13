@@ -241,8 +241,7 @@ main (int argc, char *argv[])
     }
     free(params.alpha);
 
-    rules_free(train_data.rules, train_data.n_rules);
-    rules_free(train_data.labels, train_data.n_classes);
+    data_free(&train_data);
     if (p != NULL)
         free(p);
     return (0);

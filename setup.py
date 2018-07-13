@@ -20,9 +20,9 @@ include_dirs = ['/usr/local/include', '/usr/include', 'c/']
 library_dirs = ['/usr/local/lib', 'usr/lib']
 
 sources = ['c/pysbrl.c', 'c/train.c', 'c/rulelib.c', 'c/save_load.c',
-           'c/bit_vector.c', 'c/utils.c', 'swig/pysbrl_wrap.c']
+           'c/bit_vector.c', 'c/utils.c', 'swig/sbrl_wrap.c']
 
-pysbrl_module = Extension('_pysbrl',
+pysbrl_module = Extension('_sbrl',
                           sources=sources,
                           include_dirs=include_dirs,
                           libraries=libraries,

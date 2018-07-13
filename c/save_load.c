@@ -4,6 +4,7 @@
 
 #include <assert.h>
 #include <string.h>
+#include <limits.h>
 
 #include "rule.h"
 #include "utils.h"
@@ -80,72 +81,84 @@ load_data(const char *data_file, const char *label_file, data_t *data) {
 int
 rules_init_from_stream(FILE *fi, int *ret_n_rules, int *ret_n_samples,
                        rule_data_t **rules_ret, int add_default_rule) {
-    char *cp, *features, *line, *rulestr, *tmp;
-    int rule_cnt, n_rules, n_samples;
-    int i, ret;
+    char *cp, *features, *rulestr;
+    int rule_cnt;
+    int n_rules = 0, n_samples = 0, i;
+    long tmpl;
+    int ret;
     rule_data_t *rules = NULL;
-    size_t linelen, rulelen;
-    long len;
+    unsigned buffer_size = 64;
+    char *buffer = calloc(buffer_size, sizeof(char));
+    char *end;
+    char delim = ' ', delim2 = '\t';
 
     /*
      * Leave a space for the 0th (default) rule, which we'll add at
      * the end.
      */
     rule_cnt = add_default_rule != 0 ? 1 : 0;
-    line = NULL;
-    linelen = 0;
 
     // Read the first two lines
-    if (_getline(&line, &linelen, fi) > 0 && strncmp(line, "n_items:", 8) == 0) {
-        n_rules = (int) strtol(line + 8, &tmp, 10);
-    } else {
+    if (fgets(buffer, buffer_size, fi) == NULL || strncmp(buffer, "n_items:", 8)!= 0) {
         fprintf(stderr, "Error: data file mal-format! The first line should be n_items: xxx\n");
-        return -1;
+        goto err;
     }
-
-    if (_getline(&line, &linelen, fi) > 0 && strncmp(line, "n_samples:", 10) == 0) {
-        n_samples = (int) strtol(line + 10, &tmp, 10);
-    } else {
-        fprintf(stderr, "Error: data file mal-format! The second line should be n_samples: xxx\n");
-        return -1;
+    tmpl = strtol(buffer+8, &end, 10);
+    if (errno == ERANGE || tmpl > INT_MAX){
+        fprintf(stderr, "Error: n_items range error, got %ld", tmpl);
+        goto err;
     }
+    n_rules = (int) tmpl;
+    if (fgets(buffer, buffer_size, fi) == NULL || strncmp(buffer, "n_samples:", 10)!= 0) {
+        fprintf(stderr, "Error: data file mal-format! The first line should be n_samples: xxx\n");
+        goto err;
+    }
+    tmpl = strtol(buffer+10, &end, 10);
+    if (errno == ERANGE){
+        fprintf(stderr, "Error: n_samples range error, got %ld", tmpl);
+        goto err;
+    }
+    n_samples = (int) tmpl;
+    rules = calloc((unsigned long) n_rules, sizeof(rule_data_t));
 
-    rules = calloc((unsigned) n_rules, sizeof(rule_data_t));
+    buffer_size = (unsigned) n_samples * 3 + 100;
+    buffer = realloc(buffer, buffer_size * sizeof(char));
 
     for (i = 0; i < n_rules; i++) {
-        if ((len = _getline(&line, &linelen, fi)) > 0) {
-
-            /* Get the rule string; line will contain the bits. */
-            features = line;
-            if ((rulestr = _strsep(&features, " ")) == NULL)
-                goto err;
-            if ((rules[rule_cnt].feature_str = _strdup(rulestr)) == NULL)
-                goto err;
-            rulelen = strlen(rulestr) + 1;
-            len -= rulelen;
-
-            /*
-             * At this point features is (probably) a line terminated by a
-             * newline at features[len-1]; if it is newline-terminated, then
-             * let's make it NUL-terminated and shorten the line length
-             * by one.
-             */
-            if (features[len - 1] == '\n') {
-                features[len - 1] = '\0';
-                len--;
-            }
-            if ((rules[rule_cnt].truthtable = bit_vector_from_str(features, (int) len)) == NULL)
-                goto err;
-
-            /* Now compute the number of clauses in the rule. */
-            rules[rule_cnt].cardinality = 1;
-            for (cp = rulestr; *cp != '\0'; cp++)
-                if (*cp == ',')
-                    rules[rule_cnt].cardinality++;
-            rule_cnt++;
-        } else {
-
+        if(fgets(buffer, buffer_size, fi) == NULL) {
+            if (feof(fi))
+                fprintf(stderr, "Error: Unexpected end of file at line %d, expected %d lines\n", i+2, n_rules+2);
+            if (ferror(fi))
+                fprintf(stderr, "Error: fgets error!\n");
+            errno = ENOEXEC;
+            goto err;
         }
+        end = buffer;
+
+        while((*end) != delim && (*end) != delim2 && (*end) != '\0') {
+            end++;
+        }
+        if(*end == '\0') {
+            fprintf(stderr, "%s", buffer);
+//            fprintf(stderr, "Line length: %d\n", (int) strlen(buffer));
+            fprintf(stderr, "Error: cannot find '%c' or '%c' to split the line!\n", delim, delim2);
+            errno = ENOEXEC;
+            goto err;
+        }
+        features = end+1;
+        *end = '\0';
+        rulestr = buffer;
+        if ((rules[rule_cnt].feature_str = _strdup(rulestr)) == NULL)
+            goto err;
+
+        if ((rules[rule_cnt].truthtable = bit_vector_from_str(features)) == NULL)
+            goto err;
+
+        rules[rule_cnt].cardinality = 1;
+        for (cp = rulestr; *cp != '\0'; cp++)
+            if (*cp == ',')
+                rules[rule_cnt].cardinality++;
+        rule_cnt++;
 
     }
 
@@ -163,9 +176,9 @@ rules_init_from_stream(FILE *fi, int *ret_n_rules, int *ret_n_samples,
     *ret_n_samples = n_samples;
     return (0);
 
-    err:
+err:
     ret = errno;
-
+    free(buffer);
     /* Reclaim space. */
     if (rules != NULL) {
         rules_free(rules, n_rules);

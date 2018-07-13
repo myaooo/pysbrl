@@ -45,7 +45,7 @@ void bit_vector_copy(bit_vector_t *dest, const bit_vector_t* src);
 
 // Print
 void bit_vector_print(const bit_vector_t *vec);
-bit_vector_t* bit_vector_from_str(const char *str, int len);
+bit_vector_t* bit_vector_from_str(const char *str);
 bit_vector_t* bit_vector_from_bytes(const char *bytes, bit_size_t len);
 
 // Logic operations

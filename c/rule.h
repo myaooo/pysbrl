@@ -122,6 +122,10 @@ typedef struct pred_model {
 
 void ruleset_entry_copy(rulelist_entry_t *dest, rulelist_entry_t *src);
 
+//
+// Ruleset
+//
+
 rulelist_t * ruleset_create(int n_alloc, int n_samples);
 
 rulelist_t * ruleset_init(int, int, const int *, rule_data_t *);
@@ -140,11 +144,13 @@ rulelist_t * create_random_ruleset(int, int, int, rule_data_t *);
 
 int load_data(const char *, const char *, data_t *);
 int rules_init_from_file(const char *, int *, int *, rule_data_t **,  int);
+void data_free(data_t * data);
 //int rules_init_from_data(int, int, char **, rule_data_t **, int);
 void rules_free(rule_data_t *, int);
 
 void rule_print(rule_data_t *, int, int);
 //void rule_print_all(rule_data_t *, int);
+void init_gsl_rand_gen(long seed);
 
 /* Functions for the Scalable Baysian Rule Lists */
 gsl_matrix *predict(pred_model_t *, rule_data_t *labels, params_t *);

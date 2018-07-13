@@ -1,5 +1,5 @@
-/* pysbrl.i */
-%module pysbrl
+/* sbrl.i */
+%module sbrl
 %{
 /* Put header files here or function declarations like below */
 #define SWIG_FILE_WITH_INIT

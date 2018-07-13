@@ -17,15 +17,13 @@ int train_sbrl(const char *data_file, const char *label_file,
     data_t data;
     params_t params;
     int n_classes;
-    if (verbose > 0)
-        fprintf(stdout, "Info: Load data files %s and %s\n", data_file, label_file);
+    VERBOSE1_PRINTF(stdout, "Load data files %s and %s\n", data_file, label_file);
     int ret = load_data(data_file, label_file, &data);
     if (ret != 0) {
         fprintf(stderr, "Error %d: Failed to load data files\n", ret);
         return ret;
     }
-    if (verbose > 0)
-        fprintf(stdout, "Info: Data files loaded.\n");
+    VERBOSE0_PRINTF(stdout, "Data files loaded.\n");
     n_classes = data.n_classes;
     params.lambda = lambda;
     params.eta = eta;
@@ -43,18 +41,17 @@ int train_sbrl(const char *data_file, const char *label_file,
         for (int i = 0; i < n_classes; i++)
             params.alpha[i] = alphas[i];
     }
-    if (verbose > 0) {
-        fprintf(stdout, "Info: Alphas: ");
-        for (int i = 0; i < n_classes; i++) {
-            fprintf(stdout, "%d ", params.alpha[i]);
-        }
-        fprintf(stdout, "\nInfo: Start the training...\n");
-    }
+//    if (verbose > 2) {
+//        fprintf(stdout, "Info: Alphas: ");
+//        for (int i = 0; i < n_classes; i++) {
+//            fprintf(stdout, "%d ", params.alpha[i]);
+//        }
+//    }
+    VERBOSE0_PRINTF(stdout, "Start the training...\n");
+
     pred_model_t * model = train(&data, &params, seed, verbose);
-    if (verbose > 0)
-        fprintf(stdout, "Info: Training done.\n");
-    if (verbose > 1)
-        fprintf(stdout, "INFO: Preparing outputs\n");
+    VERBOSE0_PRINTF(stdout, "Training done.\n");
+    VERBOSE1_PRINTF(stdout, "Preparing outputs\n");
     rulelist_t * rs = model->rs;
     int * rule_ids = malloc(rs->n_rules * sizeof(int));
     double * probs = malloc(rs->n_rules * n_classes * sizeof(double));
@@ -71,13 +68,11 @@ int train_sbrl(const char *data_file, const char *label_file,
     }
 
 //    strcpy(feature_lists[0], "default\0");
-    if (verbose > 10)
-        fprintf(stdout, "INFO: Copy feature strings...\n");
+    VERBOSE3_PRINTF(stdout, "Copy feature strings...\n");
     for (int i = 0; i < data.n_rules; i++) {
         feature_lists[i] = _strdup(data.rules[i].feature_str);
     }
-    if (verbose > 10)
-        fprintf(stdout, "INFO: Assigning\n");
+    VERBOSE3_PRINTF(stdout, "Assigning\n");
     *ret_n_rules = rs->n_rules;
     *ret_rule_ids = rule_ids;
     *ret_n_probs = rs->n_rules;
@@ -87,23 +82,16 @@ int train_sbrl(const char *data_file, const char *label_file,
     *ret_all_rule_features = feature_lists;
 
 //  Clean up
-    if (verbose > 10)
-        fprintf(stdout, "INFO: Freeing rule set\n");
+    VERBOSE3_PRINTF(stdout, "Freeing rule set\n");
     ruleset_destroy(model->rs);
-    if (verbose > 10)
-        fprintf(stdout, "INFO: Freeing theta\n");
+    VERBOSE3_PRINTF(stdout, "Freeing theta\n");
     free(model->theta);
     free(model);
     free(params.alpha);
-    if (verbose > 10)
-        fprintf(stdout, "INFO: Freeing rules\n");
-//    rules_free(data.rules, data.n_rules);
-    if (verbose > 10)
-        fprintf(stdout, "INFO: Freeing labels\n");
-//    rules_free(data.labels, data.n_classes);
+    VERBOSE3_PRINTF(stdout, "Freeing data\n");
+    data_free(&data);
 
-    if (verbose > 1)
-        fprintf(stdout, "Output prepared. Finished\n");
+    VERBOSE1_PRINTF(stdout, "Output prepared. Finished\n");
 
     return 0;
 }

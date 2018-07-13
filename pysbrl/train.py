@@ -5,7 +5,7 @@ from __future__ import print_function
 import os
 import numpy as np
 
-from pysbrl.pysbrl import train_sbrl as _train
+from pysbrl.sbrl import train_sbrl as _train
 
 
 def train_sbrl(data_file, label_file, lambda_=20, eta=2, max_iters=300000, n_chains=20, alpha=1, seed=None, verbose=0):

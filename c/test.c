@@ -248,6 +248,7 @@ run_experiment(int iters, int size, int nsamples, int nrules, rule_data_t *rules
     rulelist_t *rs;
     clock_t t;
     // struct timeval tv_acc, tv_start, tv_end;
+    init_gsl_rand_gen(clock());
 
     for (i = 0; i < iters; i++) {
         rs = create_random_ruleset(size, nsamples, nrules, rules);

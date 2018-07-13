@@ -94,10 +94,10 @@ char bit_vector_resize(bit_vector_t *bitvec, bit_size_t new_n_bits) {
     bitvec->n_bits = new_n_bits;
     bitvec->n_words = new_n_words;
     bitvec->n_ones = -1;
+    bitvec->words = realloc(bitvec->words, new_n_words * sizeof(word_t));
 
     if (new_n_words > bitvec->n_words) {
         // Need to change the amount of memory used
-        bitvec->words = realloc(bitvec->words, new_n_words * sizeof(word_t));
 
         if (bitvec->words == NULL) {
             // error - could not allocate enough memory
@@ -109,9 +109,6 @@ char bit_vector_resize(bit_vector_t *bitvec, bit_size_t new_n_bits) {
         // Need to zero new memory
         memset(bitvec->words + old_n_words, 0, (new_n_words - old_n_words) * sizeof(word_t));
 
-    } else if (new_n_words < old_n_words) {
-        // Shrunk -- need to zero old memory
-        memset(bitvec->words + new_n_words, 0, (old_n_words - new_n_words) * sizeof(word_t));
     }
 
     // Mask top word
@@ -350,8 +347,10 @@ bit_vector_print(const bit_vector_t *v) {
 }
 
 // Construct a BIT_ARRAY from a substring with given on and off characters.
-bit_vector_t* bit_vector_from_str(const char *str, int len)
+bit_vector_t* bit_vector_from_str(const char *str)
 {
+    if (str == NULL) return NULL;
+    unsigned long len = strlen(str);
     bit_vector_t *bits = bit_vector_init((bit_size_t) len);
     if (bits == NULL) return NULL;
 

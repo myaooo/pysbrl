@@ -9,12 +9,12 @@ if _swig_python_version_info >= (2, 7, 0):
     def swig_import_helper():
         import importlib
         pkg = __name__.rpartition('.')[0]
-        mname = '.'.join((pkg, '_pysbrl')).lstrip('.')
+        mname = '.'.join((pkg, '_sbrl')).lstrip('.')
         try:
             return importlib.import_module(mname)
         except ImportError:
-            return importlib.import_module('_pysbrl')
-    _pysbrl = swig_import_helper()
+            return importlib.import_module('_sbrl')
+    _sbrl = swig_import_helper()
     del swig_import_helper
 elif _swig_python_version_info >= (2, 6, 0):
     def swig_import_helper():
@@ -22,20 +22,20 @@ elif _swig_python_version_info >= (2, 6, 0):
         import imp
         fp = None
         try:
-            fp, pathname, description = imp.find_module('_pysbrl', [dirname(__file__)])
+            fp, pathname, description = imp.find_module('_sbrl', [dirname(__file__)])
         except ImportError:
-            import _pysbrl
-            return _pysbrl
+            import _sbrl
+            return _sbrl
         try:
-            _mod = imp.load_module('_pysbrl', fp, pathname, description)
+            _mod = imp.load_module('_sbrl', fp, pathname, description)
         finally:
             if fp is not None:
                 fp.close()
         return _mod
-    _pysbrl = swig_import_helper()
+    _sbrl = swig_import_helper()
     del swig_import_helper
 else:
-    import _pysbrl
+    import _sbrl
 del _swig_python_version_info
 
 try:
@@ -97,8 +97,8 @@ except __builtin__.Exception:
 
 
 def train_sbrl(data_file, label_file, arg3, eta, max_iters, nchain, alphas, seed, verbose):
-    return _pysbrl.train_sbrl(data_file, label_file, arg3, eta, max_iters, nchain, alphas, seed, verbose)
-train_sbrl = _pysbrl.train_sbrl
+    return _sbrl.train_sbrl(data_file, label_file, arg3, eta, max_iters, nchain, alphas, seed, verbose)
+train_sbrl = _sbrl.train_sbrl
 # This file is compatible with both classic and new-style classes.
 
 

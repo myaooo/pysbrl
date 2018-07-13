@@ -97,10 +97,10 @@ int train_sbrl(const char *data_file, const char *label_file,
     free(params.alpha);
     if (verbose > 10)
         fprintf(stdout, "INFO: Freeing rules\n");
-    rules_free(data.rules, data.n_rules);
+//    rules_free(data.rules, data.n_rules);
     if (verbose > 10)
         fprintf(stdout, "INFO: Freeing labels\n");
-    rules_free(data.labels, data.n_classes);
+//    rules_free(data.labels, data.n_classes);
 
     if (verbose > 1)
         fprintf(stdout, "Output prepared. Finished\n");

@@ -28,9 +28,9 @@
 #include <float.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
+// #include <unistd.h>
 #include <math.h>
-#include "mytime.h"
+#include <time.h>
 #include "rule.h"
 #include "bit_vector.h"
 #include "utils.h"

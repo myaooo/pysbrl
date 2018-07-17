@@ -8,13 +8,22 @@ notifications:
 
 deploy:
   provider: pypi
-  user: $PYPI_USER
+  user: szmingyao
   password: $PYPI_PASSWORD
   skip_cleanup: true
   on:
-    tags: true
+    branch: production
+
+language: python
+# Default Python version is usually 2.7
+python: 3.5
+sudo: required
+dist: trusty
+services: docker
 
 matrix:
+  exlclude:
+    - python: 3.5
   include:
     - sudo: required
       services:
@@ -25,15 +34,8 @@ matrix:
         - docker
       env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
            PRE_CMD=linux32
-    - sudo: required
-      os: osx
-      services:
-        - docker
-      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
 
 install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install swig    ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker pull $DOCKER_IMAGE; fi
 
 script:

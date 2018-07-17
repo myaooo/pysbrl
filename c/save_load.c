@@ -105,8 +105,8 @@ rules_init_from_stream(FILE *fi, int *ret_n_rules, int *ret_n_samples,
         goto err;
     }
     tmpl = strtol(buffer+8, &end, 10);
-    if (errno == ERANGE || tmpl > INT_MAX){
-        fprintf(stderr, "Error: n_items range error, got %ld", tmpl);
+    if (tmpl > INT_MAX){
+        fprintf(stderr, "Error: n_items range error, got %ld\n", tmpl);
         goto err;
     }
     n_rules = (int) tmpl;
@@ -115,8 +115,8 @@ rules_init_from_stream(FILE *fi, int *ret_n_rules, int *ret_n_samples,
         goto err;
     }
     tmpl = strtol(buffer+10, &end, 10);
-    if (errno == ERANGE){
-        fprintf(stderr, "Error: n_samples range error, got %ld", tmpl);
+    if (tmpl > INT_MAX){
+        fprintf(stderr, "Error: n_samples range error, got %ld\n", tmpl);
         goto err;
     }
     n_samples = (int) tmpl;

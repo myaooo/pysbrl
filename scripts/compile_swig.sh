@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-swig -Wall -python `pwd`/../swig/sbrl.i
-mv `pwd`/../swig/sbrl.py `pwd`/../pysbrl/sbrl.py
+swig -Wall -python ./swig/sbrl.i
+mv ./swig/sbrl.py ./pysbrl/sbrl.py

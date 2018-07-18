@@ -12,7 +12,7 @@ deploy:
   password: $PYPI_PASSWORD
   skip_cleanup: true
   on:
-    branch: production
+    branch: master
 
 language: python
 # Default Python version is usually 2.7

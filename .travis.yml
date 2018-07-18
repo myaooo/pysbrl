@@ -1,43 +1,37 @@
 addons:
   apt:
     packages:
-      - swig
-
+    - swig
 notifications:
   email: false
-
 deploy:
   provider: pypi
   user: szmingyao
-  password: $PYPI_PASSWORD
+  password:
+    secure: luIivr0y3J2RRZTd0hZ7Ik2izEN+BednIOGbw23wTqSA74rsw9VNCakjejg56KPz330csuCSRgedfWOgmFVNNdUdQfzaoRsWt93yTb3tSR60lZZQgbw2n/RwD76Nn6ESfQgrEe+b5Iz/cs98e7HJzbPOu2uWZyVJ/ak5MM7D+0ehWK4tBmFM+BiSJ4lHOOUZefJ1tGtM5mJDzoqqMVLevc8ZXWAd1g+ITMjNBQUvYsVXWp6XAW6cqE0ehcTyqkCLpQi0dQz9tdkjvxNN/fWopeMeO1Qn1HwOs04I5iSXUTSgjdtKCzf9+ZRj1C+jzl2Lzl/Ic7KafQmIUsC1CVe41tSCq+vd8+bOMJtl24gKiyDOIki78nyn+rN+TsGpJTxhTXcCRfSt9lKi/F2yV70rRR1igIF5mNqXFvJbViLYkSUs+Ggj+038NfjCvLiOSdAqG4CrUsoI1JddMNt5Ig9UIS1M8BY/dbnfxQXBuA80iYccdb1gx4tBlJl4NWxUp+Pi9g1f6nLNWaUIGzvGblaYIJQZrsmduJZMd1IfZDnP0X1cUEfeTBRtc1IQSlfUYx5xmwv1FkNB4Zo6TabFgJGZDMxKsjtgkrLVIgoIMtUAzOdcpFO4T/k8qJBnM68GR7OhI0A42hIpa4qwu+6KvbokFg59mfcg+Buwhi6UH8HtKEc=
   skip_cleanup: true
   on:
     branch: master
-
 language: python
-# Default Python version is usually 2.7
 python: 3.5
 sudo: required
 dist: trusty
 services: docker
-
 matrix:
   exlclude:
-    - python: 3.5
+  - python: 3.5
   include:
-    - sudo: required
-      services:
-        - docker
-      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
-    - sudo: required
-      services:
-        - docker
-      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
-           PRE_CMD=linux32
-
+  - sudo: required
+    services:
+    - docker
+    env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
+  - sudo: required
+    services:
+    - docker
+    env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686 PRE_CMD=linux32
 install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker pull $DOCKER_IMAGE; fi
-
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker pull $DOCKER_IMAGE; fi
 script:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker run --rm -v `pwd`:/code $DOCKER_IMAGE $PRE_CMD /code/scripts/docker_build.sh    ; fi
-  - ls dist/
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker run --rm -v `pwd`:/code $DOCKER_IMAGE
+  $PRE_CMD /code/scripts/docker_build.sh    ; fi
+- ls dist/

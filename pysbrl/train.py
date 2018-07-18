@@ -30,11 +30,11 @@ def train_sbrl(data_file, label_file, lambda_=20, eta=2, max_iters=300000, n_cha
 
     """
     if isinstance(alpha, int):
-        alphas = np.array([alpha], dtype=np.int)
+        alphas = np.array([alpha], dtype=np.int32)
     elif isinstance(alpha, list):
         for a in alpha:
             assert isinstance(a, int)
-        alphas = np.array(alpha, dtype=np.int)
+        alphas = np.array(alpha, dtype=np.int32)
     else:
         raise ValueError('the argument alpha can only be int or List[int]')
     if seed is None:

@@ -1,5 +1,8 @@
 # PySBRL
 
+[![Build Status](https://travis-ci.com/myaooo/pysbrl.svg?branch=master)](https://travis-ci.com/myaooo/pysbrl)
+
+
 Python interface of Scalable Bayesian Rule Lists described in the Paper: 
 Yang, Hongyu, Cynthia Rudin, and Margo Seltzer. "Scalable Bayesian rule lists." arXiv preprint arXiv:1602.08610 (2016).
 

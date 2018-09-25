@@ -1,7 +1,11 @@
+include c/bit_vector.h
 include c/bit_vector.c
+include c/pysbrl.h
 include c/pysbrl.c
+include c/rule.h
 include c/rulelib.c
 include c/save_load.c
 include c/train.c
+include c/utils.h
 include c/utils.c
 include swig/pysbrl_wrap.c

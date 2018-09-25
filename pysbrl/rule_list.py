@@ -132,7 +132,8 @@ class BayesianRuleList(object):
     """
 
     def __init__(self, min_rule_len=1, max_rule_len=2, min_support=0.01, lambda_=20, eta=1, iters=30000,
-                 n_chains=30, alpha=1, fim_method='eclat', feature_names=None, category_names=None, seed=None):
+                 n_chains=30, alpha=1, fim_method='eclat', feature_names=None, category_names=None, seed=None,
+                 verbose=0):
         # type: (int, int, float, float, float, int, int, int) -> None
         # parameters used for the SBRL algorithm
         self.min_rule_len = min_rule_len
@@ -145,6 +146,7 @@ class BayesianRuleList(object):
         self.n_chains = n_chains
         self.fim_method = fim_method
         self.seed = seed
+        self.verbose = verbose
 
         # values useful for printing
         self.feature_names = feature_names
@@ -180,14 +182,13 @@ class BayesianRuleList(object):
     def n_features(self):
         return self._n_features
 
-    def fit(self, x, y, verbose=0):
+    def fit(self, x, y):
         """
         :param x: 2D np.ndarray (n_instances, n_features) should be categorical data, must be of type int
         :param y: 1D np.ndarray (n_instances, ) labels
-        :param verbose:
         :return:
         """
-
+        verbose = self.verbose
         # Create temporary files
         data_file = tempfile.NamedTemporaryFile("w+b", delete=False)
         label_file = tempfile.NamedTemporaryFile("w+b", delete=False)
@@ -344,8 +345,8 @@ class BayesianRuleList(object):
 
         for i, rule in enumerate(self._rule_list):
             is_last = rule.is_default()
-            categories = None if category_names is None else category_names[i]
-            s += print_rule(rule, feature_names, categories, label="prob") + "\n"
+            # categories = None if category_names is None else category_names[i]
+            s += print_rule(rule, feature_names, category_names, label="prob") + "\n"
             if len(self._rule_list) > 1 and not is_last:
                 s += "\nELSE "
 

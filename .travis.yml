@@ -22,6 +22,5 @@ matrix:
 install:
   - docker pull $DOCKER_IMAGE
 script:
-  - docker run --rm -v `pwd`:/code $DOCKER_IMAGE
-  - $PRE_CMD /code/scripts/docker_build.sh
+  - docker run --rm -e PLAT=$PLAT -v `pwd`:/code $DOCKER_IMAGE $PRE_CMD /code/scripts/docker_build.sh
   - ls dist/

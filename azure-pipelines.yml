@@ -12,7 +12,8 @@ trigger:
 jobs:
 
 - job: macos
-  pool: {vmImage: 'macOS-10.13'}
+  pool: 
+    vmImage: 'macOS-10.13'
   strategy:
     matrix:
       Python27:
@@ -60,5 +61,7 @@ jobs:
     inputs:
       pythonUploadServiceConnection: 'Pysbrl-PyPI-Test'
   - script: |
+      echo $(PYPIRC_PATH)
+      cat $(PYPIRC_PATH)
       python -m twine upload -r "Pysbrl-PyPI-Test" --config-file $(PYPIRC_PATH) dist/*.whl
     displayName: Deploy to PyPI Test

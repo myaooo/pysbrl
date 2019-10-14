@@ -36,6 +36,7 @@ jobs:
   - script: |
       python -m pip install --upgrade pip setuptools wheel
       pip install -r dev-requirements.txt
+      pip install -r test-requirements.txt
     displayName: 'Install dependencies'
   - script: |
       python setup.py sdist bdist_wheel

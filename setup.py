@@ -56,9 +56,10 @@ setup(
     ext_modules=[pysbrl_module],
     url='https://github.com/myaooo/pysbrl',
     packages=["pysbrl"],
-    requires=['numpy'],
+    # requires=['numpy'],
     cmdclass={'build_ext': CustomBuildExtCommand},
     install_requires=[
+        'numpy>=1.13'
         'fim',
     ],
     dependency_links=[

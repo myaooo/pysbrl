@@ -1,29 +1,27 @@
 addons:
   apt:
     packages:
-    - swig
+      - swig
 notifications:
   email: false
-language: python
-python: 3.5
-sudo: required
-dist: trusty
-services: docker
 matrix:
-  exlclude:
-  - python: 3.5
+  exclude:
+    - python: 3.5
   include:
-  - sudo: required
-    services:
-    - docker
-    env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
-  - sudo: required
-    services:
-    - docker
-    env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686 PRE_CMD=linux32
+    - sudo: required
+      services:
+        - docker
+      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
+           PLAT=manylinux1_x86_64
+    - sudo: required
+      services:
+        - docker
+      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
+           PRE_CMD=linux32
+           PLAT=manylinux1_i686
 install:
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker pull $DOCKER_IMAGE; fi
+  - docker pull $DOCKER_IMAGE
 script:
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker run --rm -v `pwd`:/code $DOCKER_IMAGE
-  $PRE_CMD /code/scripts/docker_build.sh    ; fi
-- ls dist/
+  - docker run --rm -v `pwd`:/code $DOCKER_IMAGE
+  - $PRE_CMD /code/scripts/docker_build.sh
+  - ls dist/

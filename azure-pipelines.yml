@@ -59,9 +59,9 @@ jobs:
     continueOnError: true
   - task: TwineAuthenticate@1
     inputs:
-      pythonUploadServiceConnection: 'Pysbrl-PyPI-Test'
+      pythonUploadServiceConnection: 'pypitest'
   - script: |
       echo $(PYPIRC_PATH)
       cat $(PYPIRC_PATH)
-      python -m twine upload -r "Pysbrl-PyPI-Test" --config-file $(PYPIRC_PATH) dist/*.whl
+      python -m twine upload -r pypitest --config-file $(PYPIRC_PATH) dist/*.whl
     displayName: Deploy to PyPI Test

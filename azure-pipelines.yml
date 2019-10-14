@@ -55,6 +55,7 @@ jobs:
   - script: |
       python -m twine upload -r Twine --config-file $(PYPIRC_PATH) dist/*.whl
     displayName: Deploy to Azure Artifacts
+    continueOnError: true
   - task: TwineAuthenticate@1
     inputs:
       pythonUploadServiceConnection: 'Pysbrl-PyPI-Test'

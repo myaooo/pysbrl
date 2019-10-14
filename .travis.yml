@@ -4,14 +4,6 @@ addons:
     - swig
 notifications:
   email: false
-deploy:
-  provider: pypi
-  user: szmingyao
-  password:
-    secure: PhVKiB+r9w7BP2+fFde+AgwI2eN9FcTDvxG/1IIHkqZ8CWsGi4rpFFnXIoeFEPcwneeoTYNE3NOmZJYh7/4GWgImI2Gkxr+D8e16spuRoOHQuq9yNNpUpuEc/vS51QO0W3+TWI50BOLI44FIaHMNGZIenkh1+RfcsqDDsfbPM4SW10Q7vfi6gXQ7TYT8yQTwn5paZZlai1gcyNDt44BYpx4l8zfSKY6ATcBplWRfwG+d5k+dJIgAdfozFtaiP3JTF/yDcTl861v9GALrJty1HKnSdmT/sE/zaPmA8wbrPSbVWK+IPu++zeY3dEHXG7Xbc4sM1VxrcbvrTORv7KWfmKwsxDqLi25B5k6D2f/AU3LjPSTK9AO3kNqeSkosNuuBKp+5zDd2PDuPXz8XavLKhVuP8VK8kifl1FRxWa7YSkX8w1fL8a74NdXPggE1BspumcOjusWfZPqHrcZMDFY4QfizKRrlw6tn4LSzpdNHnNfrShFaqYcu3YT3AbbrW53iGlc+jryM3DMIlZra1eP1CicBNCjYCmm2s5mpJQYFEXpzYVBn4TnDgovEJs6XDZbnkxaLfneybwJzIjqrYdA1whW3cXs6qrFeElug4zCVZljwB5+LJ+RwlkkPZNMUkmTFZWNimbYUy4auoN2D+3WdudALLJDpG4+XYu+22ORuMDI=
-  skip_cleanup: true
-  on:
-    branch: master
 language: python
 python: 3.5
 sudo: required

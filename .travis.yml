@@ -1,26 +1,31 @@
 addons:
   apt:
     packages:
-      - swig
+    - swig
 notifications:
   email: false
+deploy:
+  provider: pypi
+  user: szmingyao
+  password:
+    secure: Y88O8KgitUt7hBYtmKXpaI50jO7H6RQWlwxx9F0BhRVd4Czjxk2lHBPJL1HjkEQ1Q8W8dKpWMjaZZ9clwDjb60Z4xTtGfyZLxQHILeS0LwD7Ui2AQRdH2okdsTD0F7vhwnBNnCxfcsbGvzMFC+vF+FtChF5crCqabi4ZxLegrjK56MC+BajVZfDj5qANtQUuLzdp9h4Zu4Jvo27r2ABG0PbEZ6vxWeoluzLN6/b5CT+xmHMeELEztUOGPlFYL2WcNtIM8l56GhzuA6S+L6Zqq7f/TAZVA3NROlqXe5Jl6JMr2ligtNjcphoHBxRSxa7AIrlwbQeyIh7vDb+DAXRVsxZ8ARpBY1iEp8Ki1LfRhZCrKCUEDM6e9Vh45SGZjO5A+4SW791temh2xZsjWJdMqEieBFLhVWq1Qa5DG6IXuJWW7G55reSwOzIEy7YeL1C4zbz5Rl/PrGV6aTRW9drJsFR6DjctFIbsnaFgzq9GWbAixEQQC7nfX7ZVwqyhjagZ2mHke67U81S9Al75zPdDMCIM8FvwHbWlQ0B5mkqK5kcvGs0Rr3xYWBkKEdxo38ULp/+uGvJKcvih4zxH/B0fhgar3tngXoqbIznezT8lTWYJEaU9IsKpU+af8SObwR5vWwbHUI+3gKEm0+nQk/uYp2otup07JQAPMb5LiuisIwM=
+  distributions: sdist bdist_wheel
+  on:
+    branch: master
 matrix:
   exclude:
-    - python: 3.5
+  - python: 3.5
   include:
-    - sudo: required
-      services:
-        - docker
-      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
-           PLAT=manylinux1_x86_64
-    - sudo: required
-      services:
-        - docker
-      env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686
-           PRE_CMD=linux32
-           PLAT=manylinux1_i686
+  - sudo: required
+    services:
+    - docker
+    env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64 PLAT=manylinux1_x86_64
+  - sudo: required
+    services:
+    - docker
+    env: DOCKER_IMAGE=quay.io/pypa/manylinux1_i686 PRE_CMD=linux32 PLAT=manylinux1_i686
 install:
-  - docker pull $DOCKER_IMAGE
+- docker pull $DOCKER_IMAGE
 script:
-  - docker run --rm -e PLAT=$PLAT -v `pwd`:/code $DOCKER_IMAGE $PRE_CMD /code/scripts/docker_build.sh
-  - ls dist/
+- docker run --rm -e PLAT=$PLAT -v `pwd`:/code $DOCKER_IMAGE $PRE_CMD /code/scripts/docker_build.sh
+- ls dist/

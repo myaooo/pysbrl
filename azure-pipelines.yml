@@ -52,5 +52,8 @@ jobs:
   - task: TwineAuthenticate@1
     inputs:
       artifactFeed: 'Twine'
+      externalFeed: 'Pysbrl-PyPI-Test'
   - script: |
       python -m twine upload -r Twine --config-file $(PYPIRC_PATH) dist/*.whl
+      python -m twine upload -r "Pysbrl-PyPI-Test" --config-file $(PYPIRC_PATH) dist/*.whl
+    displayName: Deploy

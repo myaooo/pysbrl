@@ -29,5 +29,5 @@ install:
 script:
 - docker run --rm -e PLAT=$PLAT -v `pwd`:/code $DOCKER_IMAGE $PRE_CMD /code/scripts/docker_build.sh
 - mkdir dist
-- mv wheelhouse/pysbrl-*.whl dist/
+- sudo mv wheelhouse/pysbrl-*.whl dist/
 - ls dist/

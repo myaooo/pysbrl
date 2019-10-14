@@ -34,7 +34,8 @@ jobs:
       brew install gsl gmp
     displayName: 'Brew install dependencies'
   - script: |
-      python -m pip install --upgrade pip setuptools wheel
+      pip install --upgrade pip 
+      pip install setuptools wheel twine
       pip install -r dev-requirements.txt
       pip install -r test-requirements.txt
     displayName: 'Install dependencies'
@@ -48,10 +49,10 @@ jobs:
       pip install pytest pytest-azurepipelines
       pytest
     displayName: 'pytest'
-  - task: TwineAuthenticate@0
+  - task: TwineAuthenticate@1
     inputs:
-      artifactFeed: 'AzureFeed'
+      artifactFeed: 'https://test.pypi.org/legacy/'
       pythonUploadServiceConnection: '<twine service connection from external organization>'
 
   - script: |
-      python -m twine upload -r "AzureFeed" --config-file $(PYPIRC_PATH) dist/*.whl
+      python -m twine upload -r "https://test.pypi.org/legacy/" --config-file $(PYPIRC_PATH) dist/*.whl

@@ -48,3 +48,10 @@ jobs:
       pip install pytest pytest-azurepipelines
       pytest
     displayName: 'pytest'
+  - task: TwineAuthenticate@0
+    inputs:
+      artifactFeed: 'AzureFeed'
+      pythonUploadServiceConnection: '<twine service connection from external organization>'
+
+  - script: |
+      python -m twine upload -r "AzureFeed" --config-file $(PYPIRC_PATH) dist/*.whl

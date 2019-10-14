@@ -51,8 +51,6 @@ jobs:
     displayName: 'pytest'
   - task: TwineAuthenticate@1
     inputs:
-      artifactFeed: 'https://test.pypi.org/legacy/'
-      pythonUploadServiceConnection: '<twine service connection from external organization>'
-
+      artifactFeed: 'Twine'
   - script: |
-      python -m twine upload -r "https://test.pypi.org/legacy/" --config-file $(PYPIRC_PATH) dist/*.whl
+      python -m twine upload -r Twine --config-file $(PYPIRC_PATH) dist/*.whl

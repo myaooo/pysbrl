@@ -1,3 +1,2 @@
 numpy
-fim>=6.27
 pytest

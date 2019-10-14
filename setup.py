@@ -47,15 +47,22 @@ class CustomBuildExtCommand(build_ext):
         build_ext.run(self)
 
 
-setup(name='pysbrl',
-      version='0.4.2',
-      author="Yao, Ming",
-      description="""A python interface of Scalable Bayesian Rule List""",
-      long_description="PySBRL is a python package that allows you to create rule lists from categorical data",
-      ext_modules=[pysbrl_module],
-      url='https://github.com/myaooo/pysbrl',
-      packages=["pysbrl"],
-      requires=['numpy'],
-      cmdclass={'build_ext': CustomBuildExtCommand},
-      #    extra_link_args = ["-bundle"],
-      )
+setup(
+    name='pysbrl',
+    version='0.4.2',
+    author="Yao, Ming",
+    description="""A python interface of Scalable Bayesian Rule List""",
+    long_description="PySBRL is a python package that allows you to create rule lists from categorical data",
+    ext_modules=[pysbrl_module],
+    url='https://github.com/myaooo/pysbrl',
+    packages=["pysbrl"],
+    requires=['numpy'],
+    cmdclass={'build_ext': CustomBuildExtCommand},
+    install_requires=[
+        'fim',
+    ],
+    dependency_links=[
+        'https://github.com/myaooo/pyfim-clone/tarball/master#egg=fim-6.28'
+    ]
+    #    extra_link_args = ["-bundle"],
+)

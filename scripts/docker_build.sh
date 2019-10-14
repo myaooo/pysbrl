@@ -6,12 +6,11 @@ yum install -y gsl-devel
 
 # Compile wheels
 for PYBIN in /opt/python/*/bin; do
-    if [[ "$PYBIN" =~ (cp33|cp37) ]]; then
-        continue
+    if [[ "$PYBIN" =~ (cp34|cp35|cp36|cp37) ]]; then
+        ${PYBIN}/pip install -r /code/dev-requirements.txt
+        ${PYBIN}/pip install -r /code/test-requirements.txt
+        ${PYBIN}/pip wheel /code/ --no-deps -w dist/
     fi
-    ${PYBIN}/pip install -r /code/dev-requirements.txt
-    ${PYBIN}/pip install -r /code/test-requirements.txt
-    ${PYBIN}/pip wheel /code/ --no-deps -w dist/
 done
 
 # Bundle external shared libraries into the wheels
@@ -21,9 +20,8 @@ done
 
 # Install packages and test
 for PYBIN in /opt/python/*/bin/; do
-    if [[ "$PYBIN" =~ (cp33|cp37) ]]; then
-        continue
+    if [[ "$PYBIN" =~ (cp34|cp35|cp36|cp37) ]]; then
+        ${PYBIN}/pip install pysbrl --no-index -f /code/dist
+        (cd /code; ${PYBIN}/python -m pytest)
     fi
-    ${PYBIN}/pip install pysbrl --no-index -f /code/dist
-    (cd /code; ${PYBIN}/python -m pytest)
 done

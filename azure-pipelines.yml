@@ -31,6 +31,9 @@ jobs:
     displayName: 'Use Python $(python.version)'
 
   - script: |
+      brew install gsl gmp
+    displayName: 'Brew install dependencies'
+  - script: |
       python -m pip install --upgrade pip setuptools wheel
       pip install -r dev-requirements.txt
     displayName: 'Install dependencies'

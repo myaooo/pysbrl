@@ -49,7 +49,7 @@ class CustomBuildExtCommand(build_ext):
 
 setup(
     name='pysbrl',
-    version='0.4.2',
+    version='0.4.3rc0',
     author="Yao, Ming",
     description="""A python interface of Scalable Bayesian Rule List""",
     long_description="PySBRL is a python package that allows you to create rule lists from categorical data",

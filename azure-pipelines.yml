@@ -5,8 +5,8 @@
 
 trigger:
   branches:
-      include:
-        - release
+    include:
+      - release
 
 jobs:
 

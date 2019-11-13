@@ -6,8 +6,7 @@
 trigger:
   branches:
       include:
-        - master
-        - dev
+        - release
 
 jobs:
 
@@ -59,9 +58,9 @@ jobs:
     continueOnError: true
   - task: TwineAuthenticate@1
     inputs:
-      pythonUploadServiceConnection: 'pypitest'
+      pythonUploadServiceConnection: 'pypi'
   - script: |
       echo $(PYPIRC_PATH)
       cat $(PYPIRC_PATH)
-      python -m twine upload -r pypitest --config-file $(PYPIRC_PATH) dist/*.whl
-    displayName: Deploy to PyPI Test
+      python -m twine upload -r pypi --config-file $(PYPIRC_PATH) dist/*.whl
+    displayName: Deploy to PyPI

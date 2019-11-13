@@ -8,6 +8,7 @@ trigger:
   branches:
     include:
       - release
+      - dev
 
 # For a master-develop workflow:
 # pr:
@@ -34,7 +35,7 @@ jobs:
         python -m pip install setuptools
         python setup.py sdist
       displayName: Publish sdist
-    - template: azure-wheel-helpers/azure-publish-dist.yml
+    - template: azure-publish-dist.yml
 
 - job: ManyLinux
   strategy:

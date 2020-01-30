@@ -49,7 +49,7 @@ class CustomBuildExtCommand(build_ext):
 
 setup(
     name='pysbrl',
-    version='0.4.3rc0',
+    version='0.4.4rc0',
     author="Yao, Ming",
     description="""A python interface of Scalable Bayesian Rule List""",
     long_description="PySBRL is a python package that allows you to create rule lists from categorical data",
@@ -59,8 +59,8 @@ setup(
     # requires=['numpy'],
     cmdclass={'build_ext': CustomBuildExtCommand},
     install_requires=[
-        'numpy>=1.13'
-        'fim',
+        'numpy>=1.13',
+        'fim'
     ],
     dependency_links=[
         'https://github.com/myaooo/pyfim-clone/tarball/master#egg=fim-6.28'

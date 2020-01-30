@@ -32,9 +32,10 @@ jobs:
     python.architecture: 'none'
   steps:
     - script: |
-        python -m pip install setuptools
+        pip install --upgrade pip 
+        pip install setuptools
         python setup.py sdist
-      displayName: Publish sdist
+      displayName: Setup sdist
     - template: azure-publish-dist.yml
 
 - job: ManyLinux

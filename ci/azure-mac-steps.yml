@@ -4,7 +4,7 @@ steps:
     brew install gsl gmp
   displayName: 'Brew install dependencies'
 - script: |
-    python setup.py sdist bdist_wheel
+    python setup.py bdist_wheel
   displayName: 'Build'
 - script: |
     python setup.py install
@@ -17,6 +17,6 @@ steps:
   inputs:
     artifactFeed: 'azure_feed'
 - script: |
-    python -m twine upload -r azure_feed --config-file $(PYPIRC_PATH) dist/*
+    python -m twine upload -r azure_feed --config-file $(PYPIRC_PATH) dist/*.whl
   displayName: Deploy to Azure Artifacts
   continueOnError: true

@@ -29,11 +29,11 @@ jobs:
   pool:
     vmImage: 'ubuntu-latest'
   variables:
+    python.version: '3.5'
     python.architecture: 'none'
   steps:
+    - template: azure-setup.yml
     - script: |
-        pip install --upgrade pip 
-        pip install setuptools
         python setup.py sdist
       displayName: Setup sdist
     - template: azure-publish-dist.yml

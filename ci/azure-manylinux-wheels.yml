@@ -6,7 +6,7 @@
 
 steps:
 - script: |
-    docker run -e NPY_NUM_BUILD_JOBS=4 --rm -v `pwd`:/code $(image) /code/scripts/docker_build.sh
+    docker run -e PLAT=$plat --rm -v `pwd`:/code $(image) /code/scripts/docker_build.sh
   displayName: Build wheels
 
 - script: |

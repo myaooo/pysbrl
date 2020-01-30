@@ -13,10 +13,10 @@ steps:
     pip install pytest pytest-azurepipelines
     pytest
   displayName: 'pytest'
-- task: TwineAuthenticate@1
-  inputs:
-    artifactFeed: 'azure_feed'
-- script: |
-    python -m twine upload -r azure_feed --config-file $(PYPIRC_PATH) dist/*.whl
-  displayName: Deploy to Azure Artifacts
-  continueOnError: true
+# - task: TwineAuthenticate@1
+#   inputs:
+#     artifactFeed: 'azure_feed'
+# - script: |
+#     python -m twine upload -r azure_feed --config-file $(PYPIRC_PATH) dist/*.whl
+#   displayName: Deploy to Azure Artifacts
+#   continueOnError: true

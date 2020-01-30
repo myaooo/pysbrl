@@ -30,7 +30,7 @@ jobs:
     vmImage: 'ubuntu-latest'
   variables:
     python.version: '3.5'
-    python.architecture: 'none'
+    python.architecture: 'x64'
   steps:
     - template: azure-setup.yml
     - script: |

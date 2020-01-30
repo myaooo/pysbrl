@@ -58,12 +58,16 @@ setup(
     packages=["pysbrl"],
     # requires=['numpy'],
     cmdclass={'build_ext': CustomBuildExtCommand},
+    setup_requires=[
+        'numpy>=1.13',
+    ],
     install_requires=[
         'numpy>=1.13',
-        'fim'
+        # 'fim'
+        'fim @ git+https://github.com/myaooo/pyfim-clone@master#egg=fim-6.28'
     ],
-    dependency_links=[
-        'https://github.com/myaooo/pyfim-clone/tarball/master#egg=fim-6.28'
-    ]
+    # dependency_links=[
+    #     'https://github.com/myaooo/pyfim-clone/tarball/master#egg=fim-6.28'
+    # ]
     #    extra_link_args = ["-bundle"],
 )

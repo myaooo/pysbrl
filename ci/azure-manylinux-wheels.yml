@@ -6,7 +6,7 @@
 
 steps:
 - script: |
-    docker run -e PLAT=$(plat) --rm -v `pwd`:/code $(image) /code/scripts/docker_build.sh
+    docker run -e PLAT=$(plat) -e PACKAGE_NAME=$(package_name) --rm -v `pwd`:/io $(image) $(pre_cmd) /io/scripts/build_wheels.sh
   displayName: Build wheels
 
 - script: |

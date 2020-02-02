@@ -41,11 +41,11 @@ jobs:
 - job: ManyLinux
   strategy:
     matrix:
-      64Bit2010:
-        arch: x86_64
-        plat: manylinux2010_x86_64
-        image: quay.io/pypa/manylinux2010_x86_64
-        python.architecture: x64
+      # 64Bit2010:
+      #   arch: x86_64
+      #   plat: manylinux2010_x86_64
+      #   image: quay.io/pypa/manylinux2010_x86_64
+      #   python.architecture: x64
       64Bit:
         arch: x86_64
         plat: manylinux1_x86_64
@@ -55,6 +55,7 @@ jobs:
         arch: i686
         plat: manylinux1_i686
         image: $(many_linux_base)i686
+        pre_cmd: linux32
         python.architecture: x86
   pool:
     vmImage: 'ubuntu-latest'
